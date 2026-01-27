@@ -1,0 +1,88 @@
+:root {
+    --sidebar-gradient-start: #143752; 
+    --sidebar-gradient-end: #0c2d46;
+    --sidebar-width: 90px;
+    --sidebar-text: #ffffff;
+    --sidebar-hover: rgba(255, 255, 255, 0.1);
+    --navbar-height: 70px; 
+}
+
+.project-sidebar {
+    position: fixed;
+    top: calc(var(--navbar-height) + 15px); 
+    left: 0; 
+    width: var(--sidebar-width);
+    height: calc(100vh - var(--navbar-height) - 30px); 
+    
+    background: linear-gradient(180deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
+    display: flex;
+    flex-direction: column;
+    padding-top: 2rem;
+    z-index: 1000;
+    
+    border-radius: 0 20px 20px 0; 
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.sidebar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--sidebar-text);
+    padding: 10px 0;
+    position: relative;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+/* Icon Styling */
+.sidebar-item .icon-wrapper {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Label Styling */
+.sidebar-item .label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Hover State */
+.sidebar-item:hover {
+    color: white;
+    opacity: 1;
+    background-color: var(--sidebar-hover);
+}
+
+/* Active State */
+.sidebar-item.active {
+    opacity: 1;
+    color: white;
+    background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+}
+
+/* Indikator Garis Putih (Disesuaikan agar tidak menempel ke border radius) */
+.sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    left: 5px; /* Memberikan sedikit jarak dari tepi kiri */
+    top: 20%;
+    bottom: 20%;
+    width: 4px;
+    background-color: white;
+    border-radius: 10px;
+}

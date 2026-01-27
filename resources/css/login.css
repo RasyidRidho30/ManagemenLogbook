@@ -1,0 +1,276 @@
+/* resources/css/login.css */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a7b 100%);
+    font-family: "Poppins", sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Main Card Container */
+.main-card {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+}
+
+/* Left Panel (Form) */
+.left-panel {
+    flex: 1;
+    padding: 60px 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.header-section {
+    margin-bottom: 40px;
+}
+
+/* Brand Logo */
+.brand-logo {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.logo-placeholder {
+    width: auto;
+    height: 55px;
+    background-color: #e5e7eb;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #9ca3af;
+}
+
+/* Typography */
+.brand-title {
+    font-weight: 700;
+    font-size: 22px;
+    color: #1f2937;
+    margin: 0 0 5px 0;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.brand-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Divider Line */
+.divider {
+    height: 1px;
+    background-color: #d1d5db;
+    width: 100%;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0 16px;
+    transition: all 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+    background-color: white;
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+}
+
+.input-icon {
+    color: #9ca3af;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.form-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 14px 0;
+    font-size: 14px;
+    color: #1f2937;
+    font-family: "Poppins", sans-serif;
+    outline: none;
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+}
+
+/* Alert Error */
+.alert-error {
+    background-color: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #991b1b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    text-decoration: none;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    transition: color 0.3s;
+}
+
+.forgot-password:hover {
+    color: #1e3a5f;
+}
+
+/* Buttons */
+.btn-login {
+    display: block;
+    text-align: center;
+    background-color: #1e3a5f;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 15px;
+    width: 100%;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: "Poppins", sans-serif;
+}
+
+.btn-login:hover {
+    background-color: #152a45;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-signup {
+    display: block;
+    text-align: center;
+    background-color: white;
+    color: #1e3a5f;
+    border: 2px solid #1e3a5f;
+    padding: 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 15px;
+    width: 100%;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: "Poppins", sans-serif;
+}
+
+.btn-signup:hover {
+    background-color: #f9fafb;
+    transform: translateY(-1px);
+}
+
+.btn-signup:active {
+    transform: translateY(0);
+}
+
+/* Right Panel (Illustration) */
+.right-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.illustration-container {
+    width: 100%;
+    max-width: 450px;
+    height: 400px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.illustration-img {
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    object-fit: cover;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .main-card {
+        flex-direction: column;
+        max-width: 500px;
+    }
+
+    .right-panel {
+        display: none;
+    }
+
+    .left-panel {
+        padding: 40px 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .left-panel {
+        padding: 30px 25px;
+    }
+
+    .brand-title {
+        font-size: 18px;
+    }
+
+    .brand-subtitle {
+        font-size: 12px;
+    }
+
+    .logo-placeholder {
+        width: 45px;
+        height: 45px;
+    }
+}

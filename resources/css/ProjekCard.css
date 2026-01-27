@@ -1,0 +1,80 @@
+.project-card {
+    border-radius: 1.25rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Hover lift */
+.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.15);
+}
+
+
+/* Header title */
+.project-card h5 {
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #143752;
+}
+
+/* Progress bar smooth + glow */
+.project-card .progress {
+    overflow: hidden;
+    background-color: #e9ecef;
+}
+
+/* Angka progress */
+.project-card .fw-bold {
+    /* letter-spacing: 0.2px; */
+    line-height: 1;
+}
+
+/* HR lebih clean */
+.project-card hr {
+    margin: 1.25rem 0;
+    opacity: 0.12;
+}
+
+.nama {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+/* Footer info */
+.project-card .text-sm {
+    font-size: 0.8rem;
+}
+
+
+/* Checklist badge lebih premium */
+.project-card span.border-success {
+    background-color: rgba(25, 135, 84, 0.08);
+}
+
+/* Animasi checklist */
+.project-card .bi-check-lg {
+    animation: pop 0.45s cubic-bezier(.4,1.4,.6,1);
+}
+
+/* Hover detail text */
+.hover-detail-text {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.75rem;
+
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.3s ease;
+}
+
+/* Muncul saat hover card */
+.project-card:hover .hover-detail-text {
+    opacity: 1;
+    transform: translateY(0);
+}
+

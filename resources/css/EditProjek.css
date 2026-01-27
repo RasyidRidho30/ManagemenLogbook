@@ -1,0 +1,14 @@
+.main-content {
+    margin-left: 125px;
+    padding: 1rem;
+    /* min-height: 100vh; */
+}
+.card-header-dark {
+    background-color: #143752;
+    color: white;
+    font-weight: 600;
+}
+.form-label {
+    font-weight: 600;
+    color: #344767;
+}

@@ -1,0 +1,123 @@
+body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f4f7f9;
+}
+.main-content {
+    margin-left: 90px;
+    padding: 2rem;
+    background-color: #f4f7f9;
+}
+
+/* Header Section */
+.page-header h2 {
+    font-weight: 700;
+    color: #0f3d6e;
+}
+.btn-back {
+    background-color: #5f6d7a;
+    color: white;
+    border-radius: 6px;
+}
+.btn-back:hover {
+    background-color: #4a5661;
+    color: white;
+}
+
+.custom-table thead {
+    background-color: #1a4268;
+    color: white;
+}
+.custom-table th {
+    padding: 12px 15px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border: none;
+}
+.custom-table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    color: #444;
+    border-bottom: 1px solid #eee;
+}
+.custom-table tbody tr:nth-child(even) {
+    background-color: #f8fbff;
+}
+
+/* Modul Header Row */
+.modul-row td {
+    background-color: #0f3d6e !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+/* Team Card */
+.team-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.team-header {
+    background-color: #1a4268;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+}
+.member-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.avatar-circle {
+    width: 35px;
+    height: 35px;
+    background-color: #1a4268;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.custom-table td {
+    vertical-align: middle;
+}
+
+.modul-row {
+    color: #f8f9fa;
+    /* background-color: #022245; */
+}
+
+.text-muted.small {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.btn-back-custom {
+    background-color: #ffffff;
+    color: #143752;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-back-custom:hover {
+    background-color: #143752;
+    color: #ffffff;
+    border-color: #143752;
+}
+
+.btn-back-custom i {
+    transition: transform 0.3s ease;
+}

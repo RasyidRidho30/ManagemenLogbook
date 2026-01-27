@@ -1,0 +1,77 @@
+.main-content {
+    margin-left: 125px;
+    padding: 2rem;
+    padding-top: 20px;
+}
+.card-header-dark {
+    background-color: #143752;
+    color: white;
+    font-weight: 600;
+}
+.bg-kegiatan {
+    background-color: #1e5a8a;
+    color: white;
+    border-radius: 4px;
+    padding: 8px 15px;
+}
+.table-jobs thead th {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    border: none;
+}
+.badge-selesai {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+}
+.badge-proses {
+    background-color: #6c757d;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+}
+
+.card-header-dark {
+    background-color: #143752;
+    color: white;
+}
+.bg-kegiatan {
+    background-color: #1e5a8a;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+}
+
+.btn-add-kegiatan {
+    border: 2px solid #1e5a8a;
+    padding: 0.4rem 0;
+    border-radius: 5px;
+    color: #143752;
+    background-color: transparent;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-add-kegiatan:hover {
+    background-color: #1e5a8a;
+    color: white;
+}
+
+.btn-add-modul {
+    background-color: #1e5a8a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-weight: 600;
+    transition: all 0.1s;
+}
+.btn-add-modul:hover {
+    background-color: #184466;
+    color: white;
+}
+

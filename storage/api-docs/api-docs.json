@@ -1,0 +1,1346 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "ManagemenLogbook API",
+        "description": "API documentation for ManagemenLogbook",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Root",
+                "operationId": "925c48f9ef980d09cd7019fec8ecfc83",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login User menggunakan Email atau Username",
+                "operationId": "222b2625838e3c57e017987f73598fda",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "login_identity",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "login_identity": {
+                                        "type": "string",
+                                        "example": "rasyid_ridho atau rasyid@polman.astra.ac.id"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login Berhasil"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout User",
+                "operationId": "ad65cbbd4e9f201619eae184a5961a98",
+                "responses": {
+                    "200": {
+                        "description": "Logout Berhasil"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/kegiatan": {
+            "get": {
+                "tags": [
+                    "Kegiatan"
+                ],
+                "summary": "Get list kegiatan (Filter by Modul)",
+                "operationId": "2d2480a249f72695f688b7dc5aaffe9c",
+                "parameters": [
+                    {
+                        "name": "mdl_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List kegiatan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Kegiatan"
+                ],
+                "summary": "Create kegiatan with auto-generated prefix (e.g., I.A)",
+                "operationId": "ba7267149c2282e64d2d891745fa8883",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mdl_id",
+                                    "nama"
+                                ],
+                                "properties": {
+                                    "mdl_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Kegiatan Setup Database"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Kegiatan created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/logbook": {
+            "get": {
+                "tags": [
+                    "Logbook"
+                ],
+                "summary": "Get logbooks (Filter Task/Date/Search)",
+                "operationId": "6b99b1d92b104d2bb3fc9536aa410471",
+                "parameters": [
+                    {
+                        "name": "tgs_id",
+                        "in": "query",
+                        "description": "Filter Task ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "tanggal",
+                        "in": "query",
+                        "description": "Filter Date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search description",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of logbook entries"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Logbook"
+                ],
+                "summary": "Create logbook entry",
+                "operationId": "b9315d9ece6c77a5f31a4a31021da052",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "tgs_id",
+                                    "tanggal",
+                                    "deskripsi"
+                                ],
+                                "properties": {
+                                    "tgs_id": {
+                                        "type": "integer"
+                                    },
+                                    "tanggal": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "deskripsi": {
+                                        "type": "string"
+                                    },
+                                    "komentar": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Logbook entry created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/mahasiswa": {
+            "get": {
+                "tags": [
+                    "Mahasiswa"
+                ],
+                "summary": "Get all mahasiswa",
+                "operationId": "894b4ffe087b183ddda16894a0a50a33",
+                "responses": {
+                    "200": {
+                        "description": "List of mahasiswa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/modul": {
+            "get": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Get list modul",
+                "operationId": "2a19b9c8d079d6717c82e54707f9a51a",
+                "parameters": [
+                    {
+                        "name": "pjk_id",
+                        "in": "query",
+                        "description": "Filter by Projek ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search modul name",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of modul",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Create modul",
+                "operationId": "273014fc42dc6e18511e4b39752ae517",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "pjk_id",
+                                    "nama",
+                                    "urut"
+                                ],
+                                "properties": {
+                                    "pjk_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Modul Database"
+                                    },
+                                    "urut": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Modul created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/modul/{id}": {
+            "get": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Get modul detail",
+                "operationId": "904561742564deac8efa72d85945d224",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Modul detail"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Update modul",
+                "operationId": "90cbae0d768f0c15fbacb5de20ae70a4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nama": {
+                                        "type": "string"
+                                    },
+                                    "urut": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Modul updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Modul"
+                ],
+                "summary": "Delete modul",
+                "operationId": "e0998df1717c44f20ca397abf4e58c6a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Modul deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek": {
+            "get": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "List projects (Filter & Search)",
+                "operationId": "993bb395ad6252d24c9181f76a8bac5f",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Cari nama projek",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "InProgress",
+                                "Completed",
+                                "OnHold"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of projects",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Create a project",
+                "operationId": "ec98e2852bf38e7225b7de72394d9610",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama",
+                                    "pic",
+                                    "tgl_mulai",
+                                    "tgl_selesai"
+                                ],
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Sistem Managemen Logbook"
+                                    },
+                                    "pic": {
+                                        "type": "string",
+                                        "example": "Acid"
+                                    },
+                                    "deskripsi": {
+                                        "type": "string",
+                                        "example": "Projek untuk mengelola logbook tugas"
+                                    },
+                                    "tgl_mulai": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-10"
+                                    },
+                                    "tgl_selesai": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-06-30"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": "{\"nama\":\"Sistem Managemen Logbook\", \"pic\":\"Acid\",\"deskripsi\":\"Projek untuk mengelola logbook tugas\",\"tgl_mulai\":\"2026-01-10\",\"tgl_selesai\":\"2026-06-30\"}"
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Projek created"
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek/{id}": {
+            "get": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Get project details",
+                "operationId": "a4aa8409e160739bb8618522bb64ff58",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Project details"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Update project",
+                "operationId": "cfac919837ec0a4c32031192ff7261c9",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Nama Projek Baru"
+                                    },
+                                    "deskripsi": {
+                                        "type": "string",
+                                        "example": "Deskripsi proyek"
+                                    },
+                                    "tgl_mulai": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-10"
+                                    },
+                                    "tgl_selesai": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-06-30"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "InProgress"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": "{\"nama\":\"Nama Projek Baru\",\"deskripsi\":\"Deskripsi proyek\",\"tgl_mulai\":\"2026-01-10\",\"tgl_selesai\":\"2026-06-30\",\"status\":\"InProgress\"}"
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Projek updated"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Delete project",
+                "operationId": "ca93048e4936fcb910831080474d3dfe",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Projek deleted"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek/{id}/stats": {
+            "get": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Get Project Dashboard Stats",
+                "description": "Mengambil statistik ringkas (Total Task, Completed, Progress %) via SP sp_get_dashboard_card_stats",
+                "operationId": "837daa10858283849f1fc96f93c3f3d6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Projek",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "pjk_id": {
+                                            "type": "integer"
+                                        },
+                                        "total_tasks": {
+                                            "type": "integer",
+                                            "example": 26
+                                        },
+                                        "completed_tasks": {
+                                            "type": "integer",
+                                            "example": 18
+                                        },
+                                        "project_progress": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 75.5
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Projek tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek/{id}/breakdown": {
+            "get": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Get Project Breakdown (Modul & Kegiatan)",
+                "description": "Mengambil detail progress per modul dan kegiatan via SP sp_get_project_breakdown",
+                "operationId": "616cacc2f28c95c204715992bac5e14b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Projek",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "nama_item": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek/{id}/recalculate": {
+            "post": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Force Recalculate Progress",
+                "operationId": "66f73b78a3a09708afbdc83b1655ddbc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Projek",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek/{id}/members": {
+            "get": {
+                "tags": [
+                    "Projek"
+                ],
+                "summary": "Get list of project members",
+                "description": "Mengambil daftar anggota yang terdaftar dalam projek tertentu",
+                "operationId": "495cf04dc33551d4d5ce5e56c0a0c29a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Projek",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of members",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "usr_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "usr_first_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "usr_last_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "mpk_role_projek": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Projek tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tugas": {
+            "get": {
+                "tags": [
+                    "Tugas"
+                ],
+                "summary": "Get tasks (filter & search)",
+                "operationId": "cd8850d85fa266867855fbba951bdccf",
+                "parameters": [
+                    {
+                        "name": "kgt_id",
+                        "in": "query",
+                        "description": "Filter Kegiatan",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "usr_id",
+                        "in": "query",
+                        "description": "Filter PIC",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter Status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search Name/Code",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of tasks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tugas"
+                ],
+                "summary": "Create a tugas with auto-generated prefix",
+                "operationId": "59ee41cbceba1efec3361389544684d5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "kgt_id",
+                                    "usr_id",
+                                    "nama",
+                                    "tgl_mulai",
+                                    "tgl_selesai",
+                                    "bobot"
+                                ],
+                                "properties": {
+                                    "kgt_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "usr_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Integrasi API Payment"
+                                    },
+                                    "tgl_mulai": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-15"
+                                    },
+                                    "tgl_selesai": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-20"
+                                    },
+                                    "bobot": {
+                                        "type": "integer",
+                                        "example": 10
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tugas created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tugas/{id}": {
+            "get": {
+                "tags": [
+                    "Tugas"
+                ],
+                "summary": "Get tugas detail",
+                "operationId": "32fdd439e52aa6a4a9aaf3273d64502e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tugas details"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tugas"
+                ],
+                "summary": "Update tugas (Progress or Full Data)",
+                "operationId": "b79338bc76e9a4a2bd346e35e6449a3f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "progress": {
+                                        "type": "number"
+                                    },
+                                    "nama": {
+                                        "type": "string"
+                                    },
+                                    "usr_id": {
+                                        "type": "integer"
+                                    },
+                                    "tgl_selesai": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tugas updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tugas"
+                ],
+                "summary": "Delete tugas",
+                "operationId": "832edc4587778f7e4765aa17cf0b012f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tugas deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get all users",
+                "operationId": "566aed8efb436ca506e0ef51a032ecd9",
+                "responses": {
+                    "200": {
+                        "description": "List of users",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Create a new user (public registration)",
+                "description": "Register a new user. The 'role' will be set to 'user' by the server regardless of client input.",
+                "operationId": "be551c1d694a01c164966f58bfa77013",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "email",
+                                    "password",
+                                    "first_name"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "description": "Optional, will be ignored and set to 'user' by the server",
+                                        "type": "string",
+                                        "example": "user"
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "example": "{\"username\":\"jdoe\",\"email\":\"jdoe@example.com\",\"password\":\"secret123\",\"first_name\":\"John\",\"last_name\":\"Doe\"}"
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created"
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/profile/update": {
+            "post": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update current user profile",
+                "operationId": "ddca02dc77d237f384f23b11d81c3b73",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string"
+                                    },
+                                    "last_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    },
+                                    "avatar": {
+                                        "description": "Profile picture file",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Kegiatan",
+            "description": "Kegiatan"
+        },
+        {
+            "name": "Logbook",
+            "description": "Logbook"
+        },
+        {
+            "name": "Mahasiswa",
+            "description": "Mahasiswa"
+        },
+        {
+            "name": "Modul",
+            "description": "Modul"
+        },
+        {
+            "name": "Projek",
+            "description": "Projek"
+        },
+        {
+            "name": "Tugas",
+            "description": "Tugas"
+        },
+        {
+            "name": "Users",
+            "description": "Users"
+        }
+    ]
+}
