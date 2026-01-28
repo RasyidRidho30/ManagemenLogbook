@@ -20,7 +20,7 @@
                    
                     <div>
                         <h1 class="brand-title">LOGBOOK MANAGEMENT</h1>
-                        <p class="brand-subtitle">Monitoring dan Kelola Proyek</p>
+                        <p class="brand-subtitle">Project Monitoring and Management</p>
                     </div>
                 </div>
                 <div class="divider"></div>
@@ -35,7 +35,7 @@
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <input type="text" id="usr_email" class="form-input" placeholder="Username" required>
+                        <input type="text" id="usr_email" class="form-input" placeholder="Username or Email" required>
                     </div>
                 </div>
 

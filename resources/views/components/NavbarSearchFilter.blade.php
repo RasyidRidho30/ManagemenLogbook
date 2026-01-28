@@ -9,11 +9,9 @@
     'searchPlaceholder' => 'Cari Projek...'
 ])
 
-{{-- Memanggil JS Komponen --}}
 @vite(['resources/js/Components/navbar.js'])
 
 <nav class="navbar-search-filter">
-    {{-- BAGIAN ATAS (Logo & User) --}}
     <div class="navbar-top">
         <div class="navbar-left">
             <div class="navbar-logo">
@@ -24,15 +22,13 @@
 
         <div class="navbar-right">
             <div class="user-info">
-                {{-- User Info (Akan diupdate oleh navbar.js atau manual via props) --}}
                 <div class="user-details">
                     <span class="user-name" id="nav-user-name">{{ $userName ?? 'Loading...' }}</span> 
                     <span class="user-role" id="nav-user-role">{{ $userRole ?? '...' }}</span>
                 </div>
                 
-                {{-- Avatar --}}
                 <div class="avatar-notification">
-                    <div class="user-avatar" id="avatarBtn"> {{-- Tambahkan ID avatarBtn --}}
+                    <div class="user-avatar" id="avatarBtn">
                         @if($userAvatar)
                             <img src="{{ $userAvatar }}" alt="User Avatar">
                         @else
@@ -42,7 +38,6 @@
                         @endif
                     </div>
 
-                    {{-- Menu Dropdown Avatar --}}
                     <div id="avatarDropdown" class="custom-dropdown-menu avatar-dropdown d-none">
                         <a href="/profile/edit" class="dropdown-item">
                             <i class="bi bi-person-gear"></i> Edit Profile
@@ -63,7 +58,6 @@
         </div>
     </div>
 
-    {{-- BAGIAN BAWAH (Kondisional: Search & Filter) --}}
     @if($showSearchFilter)
     <div class="navbar-bottom">
         <div class="search-container">

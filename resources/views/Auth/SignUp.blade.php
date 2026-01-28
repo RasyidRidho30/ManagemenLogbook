@@ -17,7 +17,7 @@
                     <img class="logo-placeholder" src="{{ asset('images/LogoBiruOnly.png') }}" alt="Logo">
                     <div>
                         <h1 class="brand-title">Create an account</h1>
-                        <p class="brand-subtitle">Buat akun untuk mulai menggunakan aplikasi</p>
+                        <p class="brand-subtitle">Create an account to start using the application</p>
                     </div>
                 </div>
                 <div class="divider"></div>
@@ -55,8 +55,6 @@
                         <input type="password" id="password" class="form-input" placeholder="Password" required>
                     </div>
                 </div>
-
-
 
                 <button type="button" id="signupBtn" class="btn-login">Sign Up</button>
                 <a href="/" class="btn-signup">Back to Login</a>

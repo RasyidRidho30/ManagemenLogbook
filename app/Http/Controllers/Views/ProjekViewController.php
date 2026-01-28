@@ -46,15 +46,12 @@ class ProjekViewController extends Controller
 
     public function jobs($id)
     {
-        // 1. Ambil data Projek utama
         $projek = DB::select('CALL sp_read_projek(?, NULL, NULL)', [$id]);
         if (empty($projek)) abort(404);
         $projek = $projek[0];
 
-        // 2. Ambil daftar Modul berdasarkan ID Projek
         $moduls = DB::select('CALL sp_read_modul(NULL, ?, NULL)', [$id]);
 
-        // 3. Ambil Detail (Hierarchy: Modul -> Kegiatan -> Tugas)
         foreach ($moduls as $modul) {
             $modul->kegiatans = DB::select('SELECT * FROM kegiatan WHERE mdl_id = ?', [$modul->mdl_id]);
 

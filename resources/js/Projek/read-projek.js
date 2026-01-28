@@ -12,25 +12,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const errorMsg = document.getElementById("errorMsg");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    // Navbar Elements
     const navbarSearchInput = document.getElementById("navbarSearchInput");
     const filterBtn = document.getElementById("filterBtn");
     const sortBtn = document.getElementById("sortBtn");
     const filterCard = document.getElementById("filterCard");
 
-    // Modal Elements
     const addForm = document.getElementById("formAddProjek");
     const modalElement = document.getElementById("addProjekModal");
     const addModal = modalElement ? new Modal(modalElement) : null;
 
-    // Sort State
     let currentSortOrder = "desc";
     let currentSortBy = "progress";
-
-    // Variable untuk menyimpan status filter saat ini
     let currentStatusFilter = "";
 
-    // 1. Setup Auth Token
     function setAuthToken(token) {
         if (!token) {
             delete axios.defaults.headers.common["Authorization"];
@@ -46,7 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const savedToken = localStorage.getItem("api_token");
     if (savedToken) setAuthToken(savedToken);
 
-    // 2. Fungsi Load Data
     async function loadProjects(searchQuery = "") {
         if (errorMsg) errorMsg.textContent = "";
         container.innerHTML =
@@ -57,7 +50,6 @@ document.addEventListener("DOMContentLoaded", function () {
             searchQuery || (navbarSearchInput ? navbarSearchInput.value : "");
 
         if (finalSearch) params.search = finalSearch;
-
         if (currentStatusFilter) params.status = currentStatusFilter;
 
         try {
@@ -69,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (data.length === 0) {
                 container.innerHTML =
-                    '<div class="col-12 text-center text-muted py-4">Tidak ada projek ditemukan.</div>';
+                    '<div class="col-12 text-center text-muted py-4">No projects found.</div>';
                 return;
             }
 
@@ -79,17 +71,16 @@ document.addEventListener("DOMContentLoaded", function () {
             if (err.response && err.response.status === 401) {
                 if (errorMsg)
                     errorMsg.innerHTML =
-                        'Sesi habis. Silakan <a href="/login">Login ulang</a>.';
+                        'Session expired. Please <a href="/login">Login again</a>.';
             } else {
                 if (errorMsg)
                     errorMsg.textContent =
-                        "Gagal memuat data: " +
+                        "Failed to load data: " +
                         (err.message || "Unknown error");
             }
         }
     }
 
-    // 3. Fungsi Render Project Cards (Updated with PIC)
     async function renderProjectCards(projects) {
         try {
             const response = await axios.post("/projek/render-cards", {
@@ -104,17 +95,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 col.className = "col-12 col-sm-6 col-md-4";
                 col.innerHTML = `
                     <div class="card p-3 h-100 shadow-sm border-0" onclick="showProjectDetail(${
-                        p.id || p.pjk_id // Handle both Resource/Raw structure
+                        p.id || p.pjk_id
                     })">
                         <h5 class="mb-1 fw-bold text-primary">${
-                            p.nama || p.pjk_nama || "Tanpa Nama"
+                            p.nama || p.pjk_nama || "No Name"
                         }</h5>
                         
                         <p class="mb-1 text-muted small">
                             <i class="bi bi-calendar-event me-1"></i>
-                            ${
-                                p.tanggal_mulai || p.pjk_tanggal_mulai || "-"
-                            } s/d 
+                            ${p.tanggal_mulai || p.pjk_tanggal_mulai || "-"} to 
                             ${p.tanggal_selesai || p.pjk_tanggal_selesai || "-"}
                         </p>
 
@@ -143,7 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // 4. Sorting Logic
     function sortProjects(projects) {
         return projects.sort((a, b) => {
             let valA, valB;
@@ -165,8 +153,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     ? 1
                     : -1
                 : valA < valB
-                ? 1
-                : -1;
+                  ? 1
+                  : -1;
         });
     }
 
@@ -183,7 +171,6 @@ document.addEventListener("DOMContentLoaded", function () {
         loadProjects();
     }
 
-    // 5. Modal Submit Logic (Updated with PIC)
     if (addForm) {
         addForm.addEventListener("submit", async function (e) {
             e.preventDefault();
@@ -198,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const payload = {
                 nama: document.getElementById("nama").value,
-                pic: document.getElementById("pic").value, // <--- Tangkap nilai PIC
+                pic: document.getElementById("pic").value,
                 deskripsi: document.getElementById("deskripsi").value,
                 tgl_mulai: document.getElementById("tgl_mulai").value,
                 tgl_selesai: document.getElementById("tgl_selesai").value,
@@ -207,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 await axios.post(apiBase + "/projek", payload);
                 alertBox.innerHTML =
-                    '<div class="alert alert-success small py-2">Projek berhasil ditambahkan!</div>';
+                    '<div class="alert alert-success small py-2">Project successfully added!</div>';
 
                 setTimeout(() => {
                     if (addModal) addModal.hide();
@@ -217,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }, 1000);
             } catch (error) {
                 const msg =
-                    error.response?.data?.message || "Gagal menyimpan data.";
+                    error.response?.data?.message || "Failed to save data.";
                 alertBox.innerHTML = `<div class="alert alert-danger small py-2">${msg}</div>`;
             } finally {
                 btnSubmit.disabled = false;
@@ -227,7 +214,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // 6. Event Listeners (Search & Filters)
     if (navbarSearchInput) {
         let searchTimeout;
         navbarSearchInput.addEventListener("input", (e) => {
@@ -260,26 +246,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Initial Load
     if (localStorage.getItem("api_token")) {
         loadProjects();
     } else {
         if (errorMsg)
             errorMsg.innerHTML =
-                'Anda belum login. <a href="/login">Login disini</a>';
+                'You are not logged in. <a href="/login">Login here</a>';
     }
 
     window.addEventListener("navbar-filter", function (e) {
-        console.log("Navbar filter status:", e.detail.status);
         currentStatusFilter = e.detail.status;
-
-        // Reload data
         loadProjects();
     });
-    
+
     window.showProjectDetail = function (id) {
-        // Redirect ke route dashboard
         window.location.href = `/projek/${id}/dashboard`;
     };
 });
-

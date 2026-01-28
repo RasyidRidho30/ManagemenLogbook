@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit Projek - {{ $projectId }}</title>
+    <title>Edit Project - {{ $projectId }}</title>
 
     @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css', 'resources/js/Projek/edit-projek.js', 'resources/css/EditProjek.css'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -12,7 +12,7 @@
 </head>
 <body>
     @include('components.NavbarSearchFilter', [
-        'title' => 'Pengaturan Projek',
+        'title' => 'Project Settings',
         'showSearchFilter' => false,
         'userName' => auth()->user()->name ?? 'User'
     ])
@@ -22,10 +22,10 @@
     <main class="main-content">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="fw-bold mb-0">Edit Detail Projek</h4>
+                <h4 class="fw-bold mb-0">Edit Project Details</h4>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="/projek" class="text-decoration-none">Projek</a></li>
+                        <li class="breadcrumb-item"><a href="/projek" class="text-decoration-none">Project</a></li>
                         <li class="breadcrumb-item active">Edit</li>
                     </ol>
                 </nav> 
@@ -35,27 +35,27 @@
                 <div class="col-lg-12">
                     <div class="card border shadow-sm rounded-3">
                         <div class="card-header card-header-dark py-3">
-                            Informasi Utama
+                            Primary Information
                         </div>
                         <div class="card-body p-4">
                             <form id="formEditProjek">
                                 <div class="mb-3">
-                                    <label class="form-label">Nama Projek</label>
+                                    <label class="form-label">Project Name</label>
                                     <input type="text" id="pjk_nama" class="form-control" required>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Deskripsi</label>
+                                    <label class="form-label">Description</label>
                                     <textarea id="pjk_deskripsi" class="form-control" rows="4"></textarea>
                                 </div>
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">PIC Projek (Eksternal/Client)</label>
+                                        <label class="form-label">Project PIC (External/Client)</label>
                                         <input type="text" id="pjk_pic" class="form-control" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Status Projek</label>
+                                        <label class="form-label">Project Status</label>
                                         <select id="pjk_status" class="form-select">
                                             <option value="InProgress">In Progress</option>
                                             <option value="Completed">Completed</option>
@@ -66,11 +66,11 @@
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tanggal Mulai</label>
+                                        <label class="form-label">Start Date</label>
                                         <input type="date" id="pjk_tgl_mulai" class="form-control" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tanggal Selesai</label>
+                                        <label class="form-label">End Date</label>
                                         <input type="date" id="pjk_tgl_selesai" class="form-control" required>
                                     </div>
                                 </div>
@@ -79,10 +79,10 @@
 
                                 <div class="d-flex justify-content-between mt-4">
                                     <button type="button" id="btnHapusProjek" class="btn btn-outline-danger px-4">
-                                        <i class="bi bi-trash me-2"></i>Hapus Projek
+                                        <i class="bi bi-trash me-2"></i>Delete Project
                                     </button>
                                     <button type="submit" class="btn btn-primary px-5 shadow-sm">
-                                        Simpan Perubahan
+                                        Save Changes
                                     </button>
                                 </div>
                             </form>

@@ -1,11 +1,9 @@
 import axios from "axios";
 
-// 1. Konfigurasi Dasar Axios
 const apiToken = localStorage.getItem("api_token");
 axios.defaults.headers.common["Authorization"] = `Bearer ${apiToken}`;
 axios.defaults.headers.common["Accept"] = "application/json";
 
-// 2. Fungsi Global
 window.openModalKegiatan = (mdlId, mdlNama) => {
     document.getElementById("input_mdl_id").value = mdlId;
     document.getElementById("title_mdl").innerText = mdlNama;
@@ -18,15 +16,15 @@ window.openModalTugas = (kgtId, kgtNama) => {
 
     const projectId = window.location.pathname.split("/")[2];
     const selectPic = document.getElementById("select_pic");
-    selectPic.innerHTML = '<option value="">Pilih PIC Anggota Tim...</option>';
+    selectPic.innerHTML = '<option value="">Select Team Member PIC...</option>';
 
     axios.get(`/api/projek/${projectId}/members`).then((res) => {
         res.data.data.forEach((member) => {
             selectPic.add(
                 new Option(
                     `${member.usr_first_name} ${member.usr_last_name}`,
-                    member.usr_id
-                )
+                    member.usr_id,
+                ),
             );
         });
     });
@@ -38,7 +36,7 @@ window.openModalEditTugas = (tgsId) => {
     axios
         .get(`/api/tugas/${tgsId}`)
         .then((res) => {
-            const tgs = res.data.data; // Berdasarkan TugasResource
+            const tgs = res.data.data;
 
             document.getElementById("edit_tgs_id").value = tgs.id;
             document.getElementById("display_edit_tgs_nama").innerText =
@@ -49,35 +47,33 @@ window.openModalEditTugas = (tgsId) => {
             document.getElementById("edit_tgl_selesai").value =
                 tgs.tanggal_selesai;
             document.getElementById("edit_progress").value = Math.round(
-                tgs.persentase_progress
+                tgs.persentase_progress,
             );
 
             const projectId = window.location.pathname.split("/")[2];
             const selectEditPic = document.getElementById("edit_usr_id");
-            selectEditPic.innerHTML = '<option value="">Pilih PIC...</option>';
+            selectEditPic.innerHTML = '<option value="">Select PIC...</option>';
 
             axios.get(`/api/projek/${projectId}/members`).then((resMember) => {
                 resMember.data.data.forEach((member) => {
                     let opt = new Option(
                         `${member.usr_first_name} ${member.usr_last_name}`,
-                        member.usr_id
+                        member.usr_id,
                     );
                     if (member.usr_id === tgs.id_pic) opt.selected = true;
                     selectEditPic.add(opt);
                 });
             });
 
-            // FIX: Hapus aria-hidden untuk mencegah error jobs:1 (image_12f46a.png)
             const modalEl = document.getElementById("modalEditTugas");
             modalEl.removeAttribute("aria-hidden");
             new bootstrap.Modal(modalEl).show();
         })
         .catch(() =>
-            Swal.fire("Error", "Gagal mengambil detail tugas", "error")
+            Swal.fire("Error", "Failed to retrieve task details", "error"),
         );
 };
 
-// 3. Event Listener Utama
 document.addEventListener("DOMContentLoaded", () => {
     const handleForm = (formId, method, urlGen) => {
         const form = document.getElementById(formId);
@@ -87,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const id = document.getElementById("edit_tgs_id")?.value;
             const url = typeof urlGen === "function" ? urlGen(id) : urlGen;
 
-            // Payload eksplisit agar sesuai dengan TugasController@update
             let data;
             if (formId === "formEditTugas") {
                 data = {
@@ -105,17 +100,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(() => {
                     Swal.fire({
                         icon: "success",
-                        title: "Berhasil!",
+                        title: "Success!",
                         showConfirmButton: false,
                         timer: 1500,
                     }).then(() => location.reload());
                 })
                 .catch((err) =>
                     Swal.fire(
-                        "Gagal",
-                        err.response?.data?.message || "Terjadi kesalahan",
-                        "error"
-                    )
+                        "Failed",
+                        err.response?.data?.message || "An error occurred",
+                        "error",
+                    ),
                 );
         });
     };
@@ -125,28 +120,30 @@ document.addEventListener("DOMContentLoaded", () => {
     handleForm("formAddTugas", "post", "/api/tugas");
     handleForm("formEditTugas", "put", (id) => `/api/tugas/${id}`);
 
-    // Handler Hapus dengan SweetAlert2
     const btnHapus = document.getElementById("btnHapusTugas");
     if (btnHapus) {
         btnHapus.onclick = () => {
             const id = document.getElementById("edit_tgs_id").value;
             const nama = document.getElementById(
-                "display_edit_tgs_nama"
+                "display_edit_tgs_nama",
             ).innerText;
 
             Swal.fire({
-                title: "Hapus Tugas?",
-                text: `Tugas "${nama}" akan dihapus permanen!`,
+                title: "Delete Task?",
+                text: `Task "${nama}" will be permanently deleted!`,
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#d33",
-                confirmButtonText: "Ya, Hapus!",
+                confirmButtonText: "Yes, Delete!",
+                cancelButtonText: "Cancel",
             }).then((result) => {
                 if (result.isConfirmed) {
                     axios.delete(`/api/tugas/${id}`).then(() => {
-                        Swal.fire("Dihapus!", "", "success").then(() =>
-                            location.reload()
-                        );
+                        Swal.fire(
+                            "Deleted!",
+                            "The task has been removed.",
+                            "success",
+                        ).then(() => location.reload());
                     });
                 }
             });

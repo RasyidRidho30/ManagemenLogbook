@@ -18,55 +18,52 @@
 
     {{-- Include Navbar --}}
     @include('components.NavbarSearchFilter', [
-        'title' => 'Sistem Manajemen Logbook',
+        'title' => 'Logbook Management System',
         'showSearchFilter' => false,
         'userName' => auth()->user()->name ?? 'Guest',
         'userRole' => auth()->user()->role ?? 'No Role',
         'userAvatar' => auth()->user()->avatar ?? null,
     ])
 
-    {{-- 2. Konten Utma --}}
+    {{-- 2. Main Content --}}
     <main class="main-content">
         
         {{-- Top Navigation --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <a href="/projek" class="btn-back-custom shadow-sm">
                 <i class="bi bi-chevron-left"></i>
-                <span>Daftar Projek</span>
+                <span>Project List</span>
             </a>
 
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="/projek" class="text-decoration-none">Projek</a></li>
+                    <li class="breadcrumb-item"><a href="/projek" class="text-decoration-none">Project</a></li>
                     <li class="breadcrumb-item active">Dashboard</li>
                 </ol>
             </nav> 
         </div>
 
-        {{-- Page Content Card --}}
         <div class="card border shadow-sm" style="border-radius: 12px; ">
             <div class="card-body p-4">
                 
-                {{-- Header Title --}}
                 <div class="page-header mb-4">
                     <h2 class="mb-1">{{ $projek->pjk_nama }}</h2>
-                    <p class="text-muted mb-0">Beranda</p>
+                    <p class="text-muted mb-0">Home</p>
                 </div>
                 <hr class="mb-4">
 
                 <div class="row g-4">
-                    {{-- Kolom Kiri: Tabel Progress Modul & Kegiatan --}}
                     <div class="col-lg-9">
                         <div class="table-responsive rounded border">
                             <table class="table custom-table mb-0">
                                 <thead>
                                     <tr>
                                         <th class="text-center" style="width: 5%">No</th>
-                                        <th style="width: 35%">Uraian Kegiatan / Modul</th>
-                                        <th class="text-center" style="width: 15%">% Selesai</th> {{-- Sebelumnya % Complete --}}
-                                        <th class="text-center" style="width: 10%">Bobot</th>
-                                        <th class="text-center" style="width: 15%">Porsi Bobot (%)</th> {{-- Sebelumnya Prosentase --}}
-                                        <th class="text-center" style="width: 20%">Kontribusi Projek</th> {{-- Sebelumnya Total --}}
+                                        <th style="width: 35%">Activity Description / Module</th>
+                                        <th class="text-center" style="width: 15%">% Complete</th>
+                                        <th class="text-center" style="width: 10%">Weight</th>
+                                        <th class="text-center" style="width: 15%">Weight Portion (%)</th>
+                                        <th class="text-center" style="width: 20%">Project Contribution</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -75,7 +72,7 @@
                                         @if($item->tipe_item === 'Modul')
                                             <tr class="modul-row">
                                                 <td class="text-center"><i class="bi bi-folder2-open"></i></td>
-                                                <td colspan="2">MODUL : {{ $item->nama_item }}</td>
+                                                <td colspan="2">MODULE : {{ $item->nama_item }}</td>
                                                 <td class="text-center">{{ $item->bobot_angka }}</td>
                                                 <td class="text-center">{{ number_format($item->prosentase_item, 2) }}%</td>
                                                 <td></td> 
@@ -105,9 +102,9 @@
                             </table>
                         </div>
 
-                        {{-- Total Progress Card (Bawah Tabel) --}}
+                        {{-- Total Progress Card (Table Bottom) --}}
                         <div class="mt-3 p-3 rounded bg-light border d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-dark">Progres Total Projek:</span>
+                            <span class="fw-bold text-dark">Total Project Progress:</span>
                             <span class="fw-bold text-primary fs-5">
                                 @php
                                     $totalRealProgress = collect($breakdown)->where('tipe_item', 'Kegiatan')->sum('kontribusi_total');
@@ -117,29 +114,29 @@
                         </div>
                     </div>
 
-                    {{-- Kolom Kanan: Tim & Search --}}
+                    {{-- Right Column: Team & Search --}}
                     <div class="col-lg-3 ">
                         
                         {{-- Search Box --}}
                         <div class="mb-3">
-                            <input type="text" class="form-control" placeholder="Cari...">
+                            <input type="text" class="form-control" placeholder="Search...">
                         </div>
 
                        {{-- Team List --}}
                         <div class="team-card border">
-                            <div class="team-header">Tim</div>
+                            <div class="team-header">Team</div>
                             <div class="team-body">
                                 @foreach($team as $member)
                                     <div class="member-item">
                                         {{-- Avatar Logic --}}
                                         <div class="avatar-circle" style="width: 30px; height: 30px; font-size: 0.75rem; overflow: hidden;">
                                             @if($member->usr_avatar_url)
-                                                {{-- Tampilkan Gambar jika tidak null --}}
+                                                {{-- Show Image if not null --}}
                                                 <img src="{{ $member->usr_avatar_url }}" 
                                                     alt="{{ $member->usr_first_name }}" 
                                                     style="width: 100%; height: 100%; object-fit: cover;">
                                             @else
-                                                {{-- Tampilkan Huruf Awal jika null --}}
+                                                {{-- Show Initial if null --}}
                                                 {{ strtoupper(substr($member->usr_first_name, 0, 1)) }}
                                             @endif
                                         </div>
@@ -159,6 +156,7 @@
 
                     </div>
                 </div>
+
             </div>
         </div>
     </main>
