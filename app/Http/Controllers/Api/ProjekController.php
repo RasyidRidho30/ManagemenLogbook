@@ -86,6 +86,7 @@ class ProjekController extends Controller
         ),
         responses: [new OA\Response(response: 201, description: "Projek created"), new OA\Response(response: 400, description: "Validation error")]
     )]
+    
     public function store(Request $request)
     {
         $request->validate([

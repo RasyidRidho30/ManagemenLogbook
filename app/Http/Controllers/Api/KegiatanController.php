@@ -29,6 +29,7 @@ class KegiatanController extends Controller
         $kegiatan = $query->get();
         return \App\Http\Resources\KegiatanResource::collection($kegiatan);
     }
+
     #[OA\Post(
         path: "/api/kegiatan",
         tags: ["Kegiatan"],
@@ -51,31 +52,27 @@ class KegiatanController extends Controller
             new OA\Response(response: 500, description: "Server error")
         ]
     )]
+
     public function store(Request $request)
     {
-        // Parameter 'kode_prefix' dihapus dari validasi karena di-generate otomatis oleh SP
         $request->validate([
             'mdl_id' => 'required|exists:modul,mdl_id',
             'nama' => 'required|string|max:255',
         ]);
 
         try {
-            // Memanggil SP sp_create_kegiatan yang menerima 3 parameter: mdl_id, nama, creator_username
-            // SP ini akan meng-handle penomoran Romawi dan Huruf (contoh: I.A) secara internal
             $result = DB::select('CALL sp_create_kegiatan(?, ?, ?)', [
                 $request->mdl_id,
                 $request->nama,
                 Auth::user()->usr_username
             ]);
 
-            // Ambil ID kegiatan baru dari hasil SP
             $newKgtId = $result[0]->new_kgt_id ?? null;
 
             if (!$newKgtId) {
                 throw new \Exception("Gagal mendapatkan ID kegiatan baru.");
             }
 
-            // Ambil data kegiatan yang baru dibuat untuk dikembalikan sebagai Resource
             $kgt = DB::table('kegiatan')->where('kgt_id', $newKgtId)->first();
 
             return (new \App\Http\Resources\KegiatanResource($kgt))

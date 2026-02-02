@@ -23,7 +23,6 @@ class ModulController extends Controller
     )]
     public function index(Request $request)
     {
-        // Param: p_mdl_id(NULL), p_pjk_id, p_search
         $modul = DB::select('CALL sp_read_modul(NULL, ?, ?)', [
             $request->pjk_id,
             $request->search
@@ -107,7 +106,6 @@ class ModulController extends Controller
     )]
     public function update(Request $request, $id)
     {
-        // Get old data
         $oldData = DB::select('CALL sp_read_modul(?, NULL, NULL)', [$id])[0] ?? null;
         if (!$oldData) return response()->json(['message' => 'Not Found'], 404);
 

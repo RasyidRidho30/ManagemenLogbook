@@ -24,28 +24,22 @@ class LogbookController extends Controller
     public function index(Request $request)
     {
         try {
-            // 1. Cek parameter yang dikirim frontend
             $tgs_id = $request->tgs_id;
             $tanggal = $request->tanggal;
             $search = $request->search;
 
-            // FIX POTENSIAL: 
-            // Ubah string kosong "" menjadi NULL agar MySQL tidak error 'Incorrect integer value'
             if ($tgs_id === '') $tgs_id = null;
             if ($tanggal === '') $tanggal = null;
             if ($search === '') $search = null;
 
-            // 2. Eksekusi SP
             $logs = DB::select('CALL sp_read_logbook(NULL, ?, ?, ?)', [
                 $tgs_id,
                 $tanggal,
                 $search
             ]);
 
-            // 3. Return Resource
             return \App\Http\Resources\LogbookResource::collection(collect($logs));
         } catch (\Throwable $e) {
-            // TANGKAP ERROR DAN TAMPILKAN
             return response()->json([
                 'status' => 'ERROR',
                 'message' => $e->getMessage(),
