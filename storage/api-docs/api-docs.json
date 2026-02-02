@@ -157,6 +157,90 @@
                 ]
             }
         },
+        "/api/kegiatan/{id}": {
+            "put": {
+                "tags": [
+                    "Kegiatan"
+                ],
+                "summary": "Update kegiatan name",
+                "operationId": "fde4c130ad77ec90b9f6b384d08ab713",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama"
+                                ],
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "Nama Kegiatan Baru"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kegiatan updated successfully"
+                    },
+                    "404": {
+                        "description": "Kegiatan not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Kegiatan"
+                ],
+                "summary": "Delete kegiatan",
+                "operationId": "bf9f4bb8bc4ea5ab917a3ca2fcbc4277",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kegiatan deleted successfully"
+                    },
+                    "404": {
+                        "description": "Kegiatan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/logbook": {
             "get": {
                 "tags": [
@@ -234,6 +318,9 @@
                                     },
                                     "komentar": {
                                         "type": "string"
+                                    },
+                                    "progress": {
+                                        "type": "integer"
                                     }
                                 },
                                 "type": "object"
@@ -244,6 +331,50 @@
                 "responses": {
                     "201": {
                         "description": "Logbook entry created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/logbook/{id}": {
+            "put": {
+                "tags": [
+                    "Logbook"
+                ],
+                "summary": "Update logbook entry (comment)",
+                "operationId": "53a01967f74a664e22beda83c09fb5c2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "lbk_komentar": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Logbook entry updated"
                     }
                 },
                 "security": [

@@ -266,11 +266,12 @@ return new class extends Migration
                 IN p_tgs_id INT,
                 IN p_tanggal DATE,
                 IN p_deskripsi TEXT,
-                IN p_komentar TEXT
+                IN p_komentar TEXT,
+                IN p_progress INT
             )
             BEGIN
-                INSERT INTO logbook (tgs_id, lbk_tanggal, lbk_deskripsi, lbk_komentar, lbk_create_at)
-                VALUES (p_tgs_id, p_tanggal, p_deskripsi, p_komentar, NOW());
+                INSERT INTO logbook (tgs_id, lbk_tanggal, lbk_deskripsi, lbk_komentar, lbk_progress, lbk_create_at)
+                VALUES (p_tgs_id, p_tanggal, p_deskripsi, p_komentar, p_progress, NOW());
             END
         ');
 
@@ -303,6 +304,39 @@ return new class extends Migration
                         l.lbk_komentar LIKE CONCAT("%", p_search, "%") COLLATE utf8mb4_unicode_ci
                     ))
                 ORDER BY l.lbk_tanggal DESC;
+            END
+        ');
+
+        // UPDATE LOGBOOK
+        DB::unprepared('
+            DROP PROCEDURE IF EXISTS sp_update_logbook;
+            CREATE PROCEDURE sp_update_logbook(
+                IN p_lbk_id INT,
+                IN p_tanggal DATE,
+                IN p_deskripsi TEXT,
+                IN p_komentar TEXT,
+                IN p_progress INT
+            )
+            BEGIN
+                UPDATE logbook
+                SET 
+                    lbk_tanggal = p_tanggal,
+                    lbk_deskripsi = p_deskripsi,
+                    lbk_komentar = p_komentar,
+                    lbk_progress = p_progress,
+                    lbk_modified_at = NOW()
+                WHERE lbk_id = p_lbk_id;
+            END
+        ');
+
+        // DELETE LOGBOOK
+        DB::unprepared('
+            DROP PROCEDURE IF EXISTS sp_delete_logbook;
+            CREATE PROCEDURE sp_delete_logbook(
+                IN p_lbk_id INT
+            )
+            BEGIN
+                DELETE FROM logbook WHERE lbk_id = p_lbk_id;
             END
         ');
 
@@ -412,7 +446,8 @@ return new class extends Migration
             END
         ');
 
-        DB::unprepared('
+        DB::unprepared(
+            '
             DROP PROCEDURE IF EXISTS sp_update_user_profile;
             CREATE PROCEDURE sp_update_user_profile(
                 IN p_usr_id INT,
@@ -456,6 +491,8 @@ return new class extends Migration
         // 4. Logbook
         DB::unprepared('DROP PROCEDURE IF EXISTS sp_create_logbook');
         DB::unprepared('DROP PROCEDURE IF EXISTS sp_read_logbook');
+        DB::unprepared('DROP PROCEDURE IF EXISTS sp_update_logbook');
+        DB::unprepared('DROP PROCEDURE IF EXISTS sp_delete_logbook');
         DB::unprepared('DROP PROCEDURE IF EXISTS sp_get_logbooks_by_task');
 
         // 5. Modul

@@ -71,6 +71,7 @@
                                     <th>CODE</th>
                                     <th>PIC</th>
                                     <th>DESCRIPTION</th>
+                                    <th width="50">ACTION</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -82,8 +83,8 @@
                                         <td>{{ \Carbon\Carbon::parse($log->tgs_tanggal_mulai)->format('d/m/Y') }}</td>
                                         <td>{{ \Carbon\Carbon::parse($log->tgs_tanggal_selesai)->format('d/m/Y') }}</td>
                                         <td class="text-center">
-                                            <span class="{{ $log->tgs_status == 'Selesai' ? 'badge bg-success' : 'badge bg-secondary' }}">
-                                                {{ number_format($log->tgs_persentasi_progress, 0) }}%
+                                            <span class="{{ ($log->lbk_progress ?? 0) >= 100 ? 'badge bg-success' : 'badge bg-secondary' }}">
+                                                {{ number_format($log->lbk_progress ?? 0, 0) }}%
                                             </span>
                                         </td>
                                         <td class="text-muted small">{{ $log->tgs_kode_prefix }}</td>
@@ -93,10 +94,25 @@
                                                 {{ Str::limit($log->lbk_deskripsi, 50) }}
                                             </small>
                                         </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#modalDetailLogbook"
+                                                data-lbk-id="{{ $log->lbk_id }}"
+                                                data-tanggal="{{ $log->lbk_tanggal }}"
+                                                data-task="{{ $log->tgs_nama }}"
+                                                data-kode="{{ $log->tgs_kode_prefix }}"
+                                                data-deskripsi="{{ $log->lbk_deskripsi }}"
+                                                data-progress="{{ $log->lbk_progress ?? 0 }}"
+                                                data-komentar="{{ $log->lbk_komentar ?? '' }}"
+                                                data-pic="{{ $log->pic_name }}"
+                                                data-start="{{ $log->tgs_tanggal_mulai }}"
+                                                data-end="{{ $log->tgs_tanggal_selesai }}">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="9" class="text-center py-4 text-muted">
+                                        <td colspan="10" class="text-center py-4 text-muted">
                                             No logbook entries available.
                                         </td>
                                     </tr>
@@ -114,7 +130,6 @@
     </main>
 
 
-    {{-- ADD LOGBOOK MODAL --}}
     <div class="modal fade" id="modalAddLogbook" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <form id="formAddLogbook" class="modal-content border-white">
@@ -125,30 +140,34 @@
                 <div class="modal-body">
                     <input type="hidden" name="pjk_id" value="{{ $projectId }}">
 
-                    {{-- 1. INPUT TANGGAL --}}
                     <div class="mb-3">
                         <label class="form-label">Date</label>
                         <input type="date" name="lbk_tanggal" id="lbk_tanggal" class="form-control" value="{{ date('Y-m-d') }}" required readonly>
                     </div>
 
-                    {{-- 2. DROPDOWN KEGIATAN (TUGAS) --}}
                     <div class="mb-3">
                         <label class="form-label">Task</label>
                         <select name="tgs_id" id="tgs_id" class="form-select" required>
                             <option value="">-- Select Task --</option>
-                            {{-- Variabel $tugas berisi hasil query daftarTugas dari controller --}}
                             @foreach($tugas as $t)
-                                <option value="{{ $t->tgs_id }}">
+                                <option value="{{ $t->tgs_id }}" data-progress="{{ $t->tgs_persentasi_progress ?? 0 }}">
                                     [{{ $t->tgs_kode_prefix }}] {{ $t->tgs_nama }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    {{-- 3. INPUT DESKRIPSI (KETERANGAN) --}}
                     <div class="mb-3">
                         <label class="form-label">Description</label>
                         <textarea name="lbk_deskripsi" id="lbk_deskripsi" class="form-control" rows="3" placeholder="What did you work on?" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Progress (%)</label>
+                        <div class="input-group">
+                            <input type="number" name="lbk_progress" id="lbk_progress" class="form-control" min="0" max="100" value="0">
+                            <span class="input-group-text">%</span>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -160,6 +179,96 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary w-100">Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetailLogbook" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-white">
+                <div class="modal-header card-header-dark">
+                    <h5 class="modal-title">Logbook Entry Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Date</label>
+                            <p id="detail-tanggal" class="fw-medium">-</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Progress</label>
+                            <p><span id="detail-progress" class="badge bg-secondary">0%</span></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Task Code</label>
+                        <p id="detail-kode" class="fw-medium">-</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Task Name</label>
+                        <p id="detail-task" class="fw-medium">-</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Start Date</label>
+                            <p id="detail-start" class="fw-medium">-</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">End Date</label>
+                            <p id="detail-end" class="fw-medium">-</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">PIC (Person In Charge)</label>
+                        <p id="detail-pic" class="fw-medium"><span class="badge bg-light text-dark border">-</span></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Description</label>
+                        <p id="detail-deskripsi" class="text-dark">-</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Comment</label>
+                        <p id="detail-komentar" class="text-dark">
+                            <em class="text-muted">-</em>
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="btnEditComment" data-bs-toggle="modal" data-bs-target="#modalEditComment">
+                        <i class="bi bi-pencil"></i> Add/Edit Comment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- EDIT COMMENT MODAL --}}
+    <div class="modal fade" id="modalEditComment" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form id="formEditComment" class="modal-content border-white">
+                <div class="modal-header card-header-dark">
+                    <h5 class="modal-title">Add/Edit Comment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="lbk_id_edit" name="lbk_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea id="komentarEdit" name="lbk_komentar" class="form-control" rows="4" placeholder="Add or edit your comment..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Comment</button>
                 </div>
             </form>
         </div>

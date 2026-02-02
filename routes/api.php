@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- LOGBOOK ---
     Route::get('logbook', [LogbookController::class, 'index']);
     Route::post('logbook', [LogbookController::class, 'store']);
+    Route::put('logbook/{id}', [LogbookController::class, 'update']);
 
     // --- PROJEK SPECIFIC LOGIC (DASHBOARD) ---
     Route::get('/projek/{id}/stats', [ProjekController::class, 'getDashboardStats']);

@@ -139,8 +139,8 @@ class DummyDataSeeder extends Seeder
         DB::select('CALL sp_update_tugas(?, ?, ?, ?, ?, ?)', [$idTugas5, $idPinow, 'Upload File (Backend Done)', '2026-03-08', 50.00, 'pinow_tems']);
 
         // ISI LOGBOOK
-        DB::select('CALL sp_create_logbook(?, ?, ?, ?)', [$idTugas1, '2026-02-03', 'Finalisasi relasi antar tabel.', 'Sudah di-approve Pak Rasyid.']);
-        DB::select('CALL sp_create_logbook(?, ?, ?, ?)', [$idTugas5, '2026-03-06', 'Berhasil membuat fungsi storage link.', 'Tinggal integrasi ke frontend.']);
+        DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?)', [$idTugas1, '2026-02-03', 'Finalisasi relasi antar tabel.', 'Sudah di-approve Pak Rasyid.', 100]);
+        DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?)', [$idTugas5, '2026-03-06', 'Berhasil membuat fungsi storage link.', 'Tinggal integrasi ke frontend.', 50]);
 
         $this->command->info('🎉 SEEDING SELESAI DENGAN KODE AUTO-GENERATED!');
     }

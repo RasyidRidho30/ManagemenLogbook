@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('lbk_tanggal')->nullable();
             $table->text('lbk_deskripsi')->nullable();
             $table->text('lbk_komentar')->nullable();
+            $table->integer('lbk_progress')->default(0)->nullable();
 
             $table->dateTime('lbk_create_at')->useCurrent();
             $table->string('lbk_create_by')->nullable();

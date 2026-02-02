@@ -64,7 +64,8 @@ class LogbookController extends Controller
                     new OA\Property(property: "tgs_id", type: "integer"),
                     new OA\Property(property: "tanggal", type: "string", format: "date"),
                     new OA\Property(property: "deskripsi", type: "string"),
-                    new OA\Property(property: "komentar", type: "string")
+                    new OA\Property(property: "komentar", type: "string"),
+                    new OA\Property(property: "progress", type: "integer")
                 ]
             )
         ),
@@ -75,17 +76,66 @@ class LogbookController extends Controller
         $request->validate([
             'tgs_id' => 'required|exists:tugas,tgs_id',
             'tanggal' => 'required|date',
-            'deskripsi' => 'required'
+            'deskripsi' => 'required',
+            'progress' => 'nullable|integer|min:0|max:100'
         ]);
 
         try {
-            DB::select('CALL sp_create_logbook(?, ?, ?, ?)', [
+            DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?)', [
                 $request->tgs_id,
                 $request->tanggal,
                 $request->deskripsi,
-                $request->komentar ?? ''
+                $request->komentar ?? '',
+                $request->progress ?? 0
             ]);
             return response()->json(['message' => 'Logbook entry created'], 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    #[OA\Put(
+        path: "/api/logbook/{id}",
+        tags: ["Logbook"],
+        summary: "Update logbook entry (comment)",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                type: "object",
+                properties: [
+                    new OA\Property(property: "lbk_komentar", type: "string")
+                ]
+            )
+        ),
+        responses: [new OA\Response(response: 200, description: "Logbook entry updated")]
+    )]
+    public function update($id, Request $request)
+    {
+        try {
+            // Fetch current logbook data
+            $logbook = DB::select('SELECT lbk_tanggal, lbk_deskripsi, lbk_progress FROM logbook WHERE lbk_id = ?', [$id]);
+
+            if (empty($logbook)) {
+                return response()->json(['message' => 'Logbook entry not found'], 404);
+            }
+
+            $current = $logbook[0];
+            $komentar = $request->lbk_komentar ?? '';
+
+            // Call sp_update_logbook with all 5 parameters
+            DB::select('CALL sp_update_logbook(?, ?, ?, ?, ?)', [
+                $id,
+                $current->lbk_tanggal,
+                $current->lbk_deskripsi,
+                $komentar,
+                $current->lbk_progress
+            ]);
+
+            return response()->json(['message' => 'Comment updated successfully'], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

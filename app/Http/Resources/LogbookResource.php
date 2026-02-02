@@ -14,6 +14,7 @@ class LogbookResource extends JsonResource
             'tanggal' => $this->lbk_tanggal ?? null,
             'deskripsi' => $this->lbk_deskripsi ?? null,
             'komentar' => $this->lbk_komentar ?? null,
+            'progress' => $this->lbk_progress ?? null,
             'nama_pic' => $this->pic_name ?? null,
             'avatar_pic' => $this->usr_avatar_url ?? null,
             'peran_pic' => $this->usr_role ?? null,
