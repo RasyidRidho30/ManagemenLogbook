@@ -13,7 +13,7 @@
             <div class="icon-wrapper">
                 <i class="bi bi-grid-fill"></i>
             </div>
-            <span class="label">Beranda</span>
+            <span class="label">Dashboard</span>
         </a>
 
         <a href="/projek/{{ $projectId }}/list" 

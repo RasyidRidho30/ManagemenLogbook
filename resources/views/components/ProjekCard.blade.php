@@ -15,7 +15,6 @@
 @vite(['resources/css/ProjekCard.css', 'resources/js/app.css'])
 
 @php
-    // Format tanggal
     $formatDate = function($dateStr) {
         if (!$dateStr) return '-';
         return \Carbon\Carbon::parse($dateStr)->locale('id')->isoFormat('D MMM YYYY');
@@ -25,7 +24,6 @@
 
     $progressValue = floatval($progress);
 
-    // Warna progress
     $textColor = 'text-danger';
     $bgColor = 'bg-danger';
     $checkIcon = '';

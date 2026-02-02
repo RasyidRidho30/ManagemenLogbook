@@ -78,10 +78,9 @@
                 </button>
                 
                 <div id="filterDropdown" class="custom-dropdown-menu d-none">
-                    <div class="dropdown-item active" data-value="">Semua Status</div>
+                    <div class="dropdown-item active" data-value="">All Projct</div>
                     <div class="dropdown-item" data-value="InProgress">In Progress</div>
                     <div class="dropdown-item" data-value="Completed">Completed</div>
-                    <div class="dropdown-item" data-value="OnHold">On Hold</div>
                 </div>
             </div>
 

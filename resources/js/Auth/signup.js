@@ -39,6 +39,10 @@ document.addEventListener("DOMContentLoaded", function () {
             showError("Password is required");
             return;
         }
+        if (password.value.length < 8) {
+            showError("Password must be at least 8 characters long");
+            return;
+        }
 
         signupBtn.disabled = true;
         signupBtn.textContent = "Creating...";

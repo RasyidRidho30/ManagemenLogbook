@@ -119,12 +119,29 @@ class UserController extends Controller
             'first_name' => 'required|string|max:50',
             'last_name' => 'nullable|string|max:50',
             'email' => 'required|email|unique:users,usr_email,' . $userId . ',usr_id',
+            'current_password' => 'nullable|required_with:password',
             'password' => 'nullable|min:8|confirmed',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         try {
             $user = DB::table('users')->where('usr_id', $userId)->first();
+
+            // Validasi current password jika ingin mengubah password
+            if ($request->filled('password')) {
+                if (!$request->filled('current_password')) {
+                    return response()->json([
+                        'message' => 'Current password is required to change password'
+                    ], 422);
+                }
+
+                if (!\Hash::check($request->current_password, $user->usr_password)) {
+                    return response()->json([
+                        'message' => 'Current password is incorrect'
+                    ], 422);
+                }
+            }
+
             $avatarUrl = $user->usr_avatar_url;
 
             if ($request->hasFile('avatar')) {

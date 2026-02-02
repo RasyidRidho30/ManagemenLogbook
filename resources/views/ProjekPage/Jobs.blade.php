@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Jobs - {{ $projek->pjk_nama }}</title>
 
-    {{-- HUBUNGKAN CSS --}}
     @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css', 'resources/css/Jobs.css', 'resources/js/Projek/jobs.js'])
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -13,7 +12,6 @@
 
 </head>
 <body>
-    {{-- Navbar --}}
     @include('components.NavbarSearchFilter', [
         'title' => 'Logbook Management System',
         'showSearchFilter' => false,
@@ -21,12 +19,10 @@
         'userRole' => auth()->user()->role ?? 'No Role'
     ])
 
-    {{-- Sidebar --}}
     <x-Sidebar :projectId="$projectId" activeMenu="jobs" />
 
     <main class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            {{-- Main Add Module Button --}}
             @if(count($moduls) > 0)
             <button class="btn-add-modul shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddModul">
                 <i class="bi bi-plus-lg"></i> Add Module
@@ -60,15 +56,20 @@
             {{-- Module & Jobs Section --}}
             @foreach($moduls as $index => $modul)
             <div class="card mb-4 border shadow-sm rounded-3">
-                <div class="card-header card-header-dark py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header card-header-dark py-3 d-flex justify-content-between align-items-center" 
+                     style="cursor: pointer;" 
+                     onclick="window.openModalEditModul({{ $modul->mdl_id }}, '{{ $modul->mdl_nama }}')">
                     <span>MODULE {{ $index + 1 }}: {{ strtoupper($modul->mdl_nama) }}</span>
+                    <i class="bi bi-pencil-square"></i>
                 </div>
                 <div class="card-body p-4">
                     @foreach($modul->kegiatans as $kegiatan)
                     <div class="kegiatan-wrapper mb-4">
-                        <div class="bg-kegiatan d-flex justify-content-between align-items-center shadow-sm">
+                        <div class="bg-kegiatan d-flex justify-content-between align-items-center shadow-sm" 
+                             style="cursor: pointer;" 
+                             onclick="window.openModalEditKegiatan({{ $kegiatan->kgt_id }}, '{{ $kegiatan->kgt_nama }}')">
                             <span class="fw-bold">{{ $kegiatan->kgt_nama }}</span>
-                            <i class="bi bi-caret-up-fill"></i>
+                            <i class="bi bi-pencil-square"></i>
                         </div>
                         
                         <div class="table-responsive">
@@ -256,6 +257,66 @@
                 <div class="modal-footer d-flex justify-content-between">
                     <button type="button" class="btn btn-danger" id="btnHapusTugas">
                         <i class="bi bi-trash"></i> Delete Task
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- EDIT ACTIVITY MODAL --}}
+    <div class="modal fade" id="modalEditKegiatan" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form id="formEditKegiatan" class="modal-content border-white">
+                <div class="modal-header card-header-dark">
+                    <h5 class="modal-title fw-bold">Edit Activity</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_kgt_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Activity Name</label>
+                        <input type="text" id="edit_kgt_nama" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-danger" id="btnHapusKegiatan">
+                        <i class="bi bi-trash"></i> Delete Activity
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- EDIT MODULE MODAL --}}
+    <div class="modal fade" id="modalEditModul" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form id="formEditModul" class="modal-content border-white">
+                <div class="modal-header card-header-dark">
+                    <h5 class="modal-title fw-bold">Edit Module</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_mdl_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Module Name</label>
+                        <input type="text" id="edit_mdl_nama" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Sequence (No)</label>
+                        <input type="number" id="edit_mdl_urut" class="form-control" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-danger" id="btnHapusModul">
+                        <i class="bi bi-trash"></i> Delete Module
                     </button>
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

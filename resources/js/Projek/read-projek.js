@@ -23,6 +23,136 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentSortBy = "progress";
     let currentStatusFilter = "";
 
+    // Get date elements
+    const tglMulaiInput = document.getElementById("tgl_mulai");
+    const tglSelesaiInput = document.getElementById("tgl_selesai");
+
+    // Set minimum date for tgl_mulai to today
+    function initializeDateValidation() {
+        const today = new Date();
+        const todayString = today.toISOString().split("T")[0];
+
+        if (tglMulaiInput) {
+            tglMulaiInput.setAttribute("min", todayString);
+        }
+
+        if (tglSelesaiInput) {
+            tglSelesaiInput.disabled = true;
+            tglSelesaiInput.setAttribute(
+                "placeholder",
+                "Isi tanggal mulai terlebih dahulu",
+            );
+        }
+    }
+
+    // Event listener for tgl_mulai change
+    if (tglMulaiInput) {
+        tglMulaiInput.addEventListener("change", function () {
+            const tglMulaiValue = this.value;
+
+            if (!tglMulaiValue) {
+                if (tglSelesaiInput) {
+                    tglSelesaiInput.disabled = true;
+                    tglSelesaiInput.value = "";
+                    tglSelesaiInput.removeAttribute("min");
+                }
+            } else {
+                // Enable tgl_selesai and set minimum to day after tgl_mulai
+                const mulaiDate = new Date(tglMulaiValue);
+                const selesaiMinDate = new Date(mulaiDate);
+                selesaiMinDate.setDate(selesaiMinDate.getDate() + 1);
+                const selesaiMinDateString = selesaiMinDate
+                    .toISOString()
+                    .split("T")[0];
+
+                if (tglSelesaiInput) {
+                    tglSelesaiInput.disabled = false;
+                    tglSelesaiInput.setAttribute("min", selesaiMinDateString);
+                    tglSelesaiInput.removeAttribute("placeholder");
+                }
+
+                // Reset tgl_selesai if it's now invalid
+                if (tglSelesaiInput && tglSelesaiInput.value) {
+                    const selesaiDate = new Date(tglSelesaiInput.value);
+                    if (selesaiDate <= mulaiDate) {
+                        tglSelesaiInput.value = "";
+                    }
+                }
+            }
+        });
+    }
+
+    // Validation on form submit
+    if (addForm) {
+        const originalAddFormListener = addForm.onsubmit;
+        addForm.addEventListener("submit", function (e) {
+            const tglMulaiValue = tglMulaiInput ? tglMulaiInput.value : "";
+            const tglSelesaiValue = tglSelesaiInput
+                ? tglSelesaiInput.value
+                : "";
+            const alertBox = document.getElementById("modalAlert");
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Validate tgl_mulai
+            if (!tglMulaiValue) {
+                e.preventDefault();
+                if (alertBox) {
+                    alertBox.innerHTML =
+                        '<div class="alert alert-warning small py-2">Tanggal mulai harus diisi!</div>';
+                }
+                return;
+            }
+
+            const mulaiDate = new Date(tglMulaiValue);
+            if (mulaiDate < today) {
+                e.preventDefault();
+                if (alertBox) {
+                    alertBox.innerHTML =
+                        '<div class="alert alert-warning small py-2">Tanggal mulai tidak boleh kurang dari hari ini!</div>';
+                }
+                return;
+            }
+
+            // Validate tgl_selesai
+            if (!tglSelesaiValue) {
+                e.preventDefault();
+                if (alertBox) {
+                    alertBox.innerHTML =
+                        '<div class="alert alert-warning small py-2">Tanggal selesai harus diisi!</div>';
+                }
+                return;
+            }
+
+            const selesaiDate = new Date(tglSelesaiValue);
+            if (selesaiDate <= mulaiDate) {
+                e.preventDefault();
+                if (alertBox) {
+                    alertBox.innerHTML =
+                        '<div class="alert alert-warning small py-2">Tanggal selesai harus lebih besar dari tanggal mulai!</div>';
+                }
+                return;
+            }
+
+            if (selesaiDate <= today) {
+                e.preventDefault();
+                if (alertBox) {
+                    alertBox.innerHTML =
+                        '<div class="alert alert-warning small py-2">Tanggal selesai tidak boleh kurang dari atau sama dengan hari ini!</div>';
+                }
+                return;
+            }
+        });
+    }
+
+    // Initialize date validation when modal opens
+    if (modalElement) {
+        modalElement.addEventListener("show.bs.modal", function () {
+            initializeDateValidation();
+        });
+    }
+
     function setAuthToken(token) {
         if (!token) {
             delete axios.defaults.headers.common["Authorization"];

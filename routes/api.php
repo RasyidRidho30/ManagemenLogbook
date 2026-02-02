@@ -50,6 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- KEGIATAN (PARTIAL CRUD) ---
     Route::get('kegiatan', [KegiatanController::class, 'index']);
     Route::post('kegiatan', [KegiatanController::class, 'store']);
+    Route::put('kegiatan/{id}', [KegiatanController::class, 'update']);
+    Route::delete('kegiatan/{id}', [KegiatanController::class, 'destroy']);
 
     // --- LOGBOOK ---
     Route::get('logbook', [LogbookController::class, 'index']);

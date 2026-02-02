@@ -18,17 +18,17 @@ window.openModalTugas = (kgtId, kgtNama) => {
     const selectPic = document.getElementById("select_pic");
     selectPic.innerHTML = '<option value="">Select Team Member PIC...</option>';
 
-    axios.get(`/api/projek/${projectId}/members`).then((res) => {
-        res.data.data.forEach((member) => {
-            selectPic.add(
-                new Option(
-                    `${member.usr_first_name} ${member.usr_last_name}`,
-                    member.usr_id,
-                ),
-            );
+    axios
+        .get(`/api/projek/${projectId}/member`)
+        .then((res) => {
+            res.data.forEach((member) => {
+                selectPic.add(new Option(member.user.name, member.user.id));
+            });
+        })
+        .catch((err) => {
+            console.error("Failed to load members:", err);
+            Swal.fire("Error", "Failed to load team members", "error");
         });
-    });
-
     new bootstrap.Modal(document.getElementById("modalAddTugas")).show();
 };
 
@@ -37,7 +37,6 @@ window.openModalEditTugas = (tgsId) => {
         .get(`/api/tugas/${tgsId}`)
         .then((res) => {
             const tgs = res.data.data;
-
             document.getElementById("edit_tgs_id").value = tgs.id;
             document.getElementById("display_edit_tgs_nama").innerText =
                 tgs.nama;
@@ -54,13 +53,10 @@ window.openModalEditTugas = (tgsId) => {
             const selectEditPic = document.getElementById("edit_usr_id");
             selectEditPic.innerHTML = '<option value="">Select PIC...</option>';
 
-            axios.get(`/api/projek/${projectId}/members`).then((resMember) => {
-                resMember.data.data.forEach((member) => {
-                    let opt = new Option(
-                        `${member.usr_first_name} ${member.usr_last_name}`,
-                        member.usr_id,
-                    );
-                    if (member.usr_id === tgs.id_pic) opt.selected = true;
+            axios.get(`/api/projek/${projectId}/member`).then((resMember) => {
+                resMember.data.forEach((member) => {
+                    let opt = new Option(member.user.name, member.user.id);
+                    if (member.user.id === tgs.id_pic) opt.selected = true;
                     selectEditPic.add(opt);
                 });
             });
@@ -74,6 +70,37 @@ window.openModalEditTugas = (tgsId) => {
         );
 };
 
+window.openModalEditKegiatan = (kgtId, kgtNama) => {
+    document.getElementById("edit_kgt_id").value = kgtId;
+    document.getElementById("edit_kgt_nama").value = kgtNama;
+    new bootstrap.Modal(document.getElementById("modalEditKegiatan")).show();
+};
+
+window.openModalEditModul = (mdlId, mdlNama) => {
+    axios
+        .get(`/api/modul/${mdlId}`)
+        .then((res) => {
+            const mdl = res.data.data ?? res.data;
+            document.getElementById("edit_mdl_id").value = mdl.id ?? mdlId;
+            document.getElementById("edit_mdl_nama").value =
+                mdl.nama ?? mdlNama;
+            document.getElementById("edit_mdl_urut").value = mdl.urut ?? 1;
+            new bootstrap.Modal(
+                document.getElementById("modalEditModul"),
+            ).show();
+        })
+        .catch(() => {
+            console.error("Failed to fetch module details");
+            // Fallback: just set the name and use default sequence
+            document.getElementById("edit_mdl_id").value = mdlId;
+            document.getElementById("edit_mdl_nama").value = mdlNama;
+            document.getElementById("edit_mdl_urut").value = 1;
+            new bootstrap.Modal(
+                document.getElementById("modalEditModul"),
+            ).show();
+        });
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     const handleForm = (formId, method, urlGen) => {
         const form = document.getElementById(formId);
@@ -82,7 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const id = document.getElementById("edit_tgs_id")?.value;
             const url = typeof urlGen === "function" ? urlGen(id) : urlGen;
-
             let data;
             if (formId === "formEditTugas") {
                 data = {
@@ -119,6 +145,130 @@ document.addEventListener("DOMContentLoaded", () => {
     handleForm("formAddKegiatan", "post", "/api/kegiatan");
     handleForm("formAddTugas", "post", "/api/tugas");
     handleForm("formEditTugas", "put", (id) => `/api/tugas/${id}`);
+
+    const formEditModul = document.getElementById("formEditModul");
+    if (formEditModul) {
+        formEditModul.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const mdlId = document.getElementById("edit_mdl_id").value;
+            const nama = document.getElementById("edit_mdl_nama").value;
+            const urut = document.getElementById("edit_mdl_urut").value;
+
+            axios
+                .put(`/api/modul/${mdlId}`, { nama, urut })
+                .then(() => {
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("modalEditModul"),
+                    ).hide();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success!",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    }).then(() => location.reload());
+                })
+                .catch((err) =>
+                    Swal.fire(
+                        "Failed",
+                        err.response?.data?.message || "An error occurred",
+                        "error",
+                    ),
+                );
+        });
+    }
+
+    const btnHapusModul = document.getElementById("btnHapusModul");
+    if (btnHapusModul) {
+        btnHapusModul.onclick = () => {
+            const mdlId = document.getElementById("edit_mdl_id").value;
+            const mdlNama = document.getElementById("edit_mdl_nama").value;
+
+            Swal.fire({
+                title: "Delete Module?",
+                text: `Module "${mdlNama}" and all its activities and tasks will be permanently deleted!`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                confirmButtonText: "Yes, Delete!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    axios.delete(`/api/modul/${mdlId}`).then(() => {
+                        bootstrap.Modal.getInstance(
+                            document.getElementById("modalEditModul"),
+                        ).hide();
+                        Swal.fire(
+                            "Deleted!",
+                            "The module has been removed.",
+                            "success",
+                        ).then(() => location.reload());
+                    });
+                }
+            });
+        };
+    }
+
+    const formEditKegiatan = document.getElementById("formEditKegiatan");
+    if (formEditKegiatan) {
+        formEditKegiatan.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const kgtId = document.getElementById("edit_kgt_id").value;
+            const nama = document.getElementById("edit_kgt_nama").value;
+
+            axios
+                .put(`/api/kegiatan/${kgtId}`, { nama })
+                .then(() => {
+                    bootstrap.Modal.getInstance(
+                        document.getElementById("modalEditKegiatan"),
+                    ).hide();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success!",
+                        showConfirmButton: false,
+                        timer: 1500,
+                    }).then(() => location.reload());
+                })
+                .catch((err) =>
+                    Swal.fire(
+                        "Failed",
+                        err.response?.data?.message || "An error occurred",
+                        "error",
+                    ),
+                );
+        });
+    }
+
+    // === DELETE KEGIATAN ===
+    const btnHapusKegiatan = document.getElementById("btnHapusKegiatan");
+    if (btnHapusKegiatan) {
+        btnHapusKegiatan.onclick = () => {
+            const kgtId = document.getElementById("edit_kgt_id").value;
+            const kgtNama = document.getElementById("edit_kgt_nama").value;
+
+            Swal.fire({
+                title: "Delete Activity?",
+                text: `Activity "${kgtNama}" and all its tasks will be permanently deleted!`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                confirmButtonText: "Yes, Delete!",
+                cancelButtonText: "Cancel",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    axios.delete(`/api/kegiatan/${kgtId}`).then(() => {
+                        bootstrap.Modal.getInstance(
+                            document.getElementById("modalEditKegiatan"),
+                        ).hide();
+                        Swal.fire(
+                            "Deleted!",
+                            "The activity has been removed.",
+                            "success",
+                        ).then(() => location.reload());
+                    });
+                }
+            });
+        };
+    }
 
     const btnHapus = document.getElementById("btnHapusTugas");
     if (btnHapus) {

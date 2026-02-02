@@ -8,7 +8,53 @@ document.addEventListener("DOMContentLoaded", function () {
     const urlParts = window.location.pathname.split("/");
     const projectId = urlParts[2];
 
-    // --- LOGIKA UTAMA (LOAD DATA, EDIT, DELETE PROJECT) TETAP SAMA ---
+    const tglMulaiInput = document.getElementById("pjk_tgl_mulai");
+    const tglSelesaiInput = document.getElementById("pjk_tgl_selesai");
+
+    function initializeDateValidation() {
+        const today = new Date();
+        const todayString = today.toISOString().split("T")[0];
+
+        if (tglMulaiInput) {
+            tglMulaiInput.setAttribute("min", todayString);
+        }
+
+        if (tglSelesaiInput) {
+            tglSelesaiInput.setAttribute("min", todayString);
+        }
+    }
+
+    if (tglMulaiInput) {
+        tglMulaiInput.addEventListener("change", function () {
+            const tglMulaiValue = this.value;
+
+            if (!tglMulaiValue) {
+                if (tglSelesaiInput) {
+                    tglSelesaiInput.value = "";
+                    tglSelesaiInput.removeAttribute("min");
+                }
+            } else {
+                const mulaiDate = new Date(tglMulaiValue);
+                const selesaiMinDate = new Date(mulaiDate);
+                selesaiMinDate.setDate(selesaiMinDate.getDate() + 1);
+                const selesaiMinDateString = selesaiMinDate
+                    .toISOString()
+                    .split("T")[0];
+
+                if (tglSelesaiInput) {
+                    tglSelesaiInput.setAttribute("min", selesaiMinDateString);
+                }
+
+                if (tglSelesaiInput && tglSelesaiInput.value) {
+                    const selesaiDate = new Date(tglSelesaiInput.value);
+                    if (selesaiDate <= mulaiDate) {
+                        tglSelesaiInput.value = "";
+                    }
+                }
+            }
+        });
+    }
+
     function loadProjectData() {
         axios
             .get(`/api/projek/${projectId}`)
@@ -22,6 +68,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     data.tanggal_mulai;
                 document.getElementById("pjk_tgl_selesai").value =
                     data.tanggal_selesai;
+
+                initializeDateValidation();
             })
             .catch(() =>
                 Swal.fire("Error", "Failed to retrieve project data", "error"),
@@ -33,13 +81,71 @@ document.addEventListener("DOMContentLoaded", function () {
     if (form) {
         form.addEventListener("submit", function (e) {
             e.preventDefault();
+
+            const tglMulaiValue =
+                document.getElementById("pjk_tgl_mulai").value;
+            const tglSelesaiValue =
+                document.getElementById("pjk_tgl_selesai").value;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Validate tgl_mulai
+            if (!tglMulaiValue) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal mulai harus diisi!",
+                    "warning",
+                );
+                return;
+            }
+
+            const mulaiDate = new Date(tglMulaiValue);
+            if (mulaiDate < today) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal mulai tidak boleh kurang dari hari ini!",
+                    "warning",
+                );
+                return;
+            }
+
+            // Validate tgl_selesai
+            if (!tglSelesaiValue) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal selesai harus diisi!",
+                    "warning",
+                );
+                return;
+            }
+
+            const selesaiDate = new Date(tglSelesaiValue);
+            if (selesaiDate <= mulaiDate) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal selesai harus lebih besar dari tanggal mulai!",
+                    "warning",
+                );
+                return;
+            }
+
+            if (selesaiDate <= today) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal selesai tidak boleh kurang dari atau sama dengan hari ini!",
+                    "warning",
+                );
+                return;
+            }
+
             const payload = {
                 nama: document.getElementById("pjk_nama").value,
                 deskripsi: document.getElementById("pjk_deskripsi").value,
                 pic: document.getElementById("pjk_pic").value,
                 status: document.getElementById("pjk_status").value,
-                tgl_mulai: document.getElementById("pjk_tgl_mulai").value,
-                tgl_selesai: document.getElementById("pjk_tgl_selesai").value,
+                tgl_mulai: tglMulaiValue,
+                tgl_selesai: tglSelesaiValue,
             };
             axios
                 .put(`/api/projek/${projectId}`, payload)

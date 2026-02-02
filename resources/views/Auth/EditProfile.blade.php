@@ -8,17 +8,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css'])
+    @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css', 'resources/css/EditProfile.css', 'resources/js/Auth/edit-profile.js'])
     
-    <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f9; }
-        .main-content { margin-left: 125px; padding: 2rem; }
-        .profile-card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .avatar-upload { position: relative; max-width: 120px; margin: 0 auto 20px; }
-        .avatar-preview { width: 120px; height: 120px; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); object-fit: cover; background: #ddd; }
-        .btn-change-photo { position: absolute; bottom: 0; right: 0; background: #143752; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid #fff; }
-        .form-label { font-weight: 600; color: #143752; font-size: 0.9rem; }
-    </style>
 </head>
 <body>
     @include('components.NavbarSearchFilter', [
@@ -103,74 +94,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    
-    <script>
-        const token = localStorage.getItem("api_token");
-        if (!token) window.location.href = "/login"; 
-
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-        function populateProfile(user) {
-            document.getElementById('first_name').value = user.first_name;
-            document.getElementById('last_name').value = user.last_name;
-            document.getElementById('email').value = user.email;
-            document.getElementById('username').value = user.username;
-            document.getElementById('avatarPreview').src = user.avatar ;
-        }
-
-        axios.get('/api/user')
-            .then(res => {
-                const payload = res.data;
-                const user = payload.data ?? payload;
-                populateProfile(user);
-            })
-            .catch(err => {
-                const status = err.response?.status;
-                if (status === 404) {
-                    axios.get('/api/me')
-                        .then(r => {
-                            const user = r.data.data ?? r.data;
-                            populateProfile(user);
-                        })
-                        .catch(e => {
-                            const st = e.response?.status;
-                            if (st === 401 || st === 403) {
-                                localStorage.removeItem("api_token");
-                                window.location.href = "/login";
-                            } else {
-                                console.error('Fallback /api/me error', e);
-                                Swal.fire('Error', e.response?.data?.message || 'Failed to fetch profile data (fallback)', 'error');
-                            }
-                        });
-                    return;
-                }
-
-                if (status === 401 || status === 403) {
-                    localStorage.removeItem("api_token");
-                    window.location.href = "/login";
-                } else {
-                    console.error('Error fetching /api/user', err);
-                    Swal.fire('Error', err.response?.data?.message || `Failed to fetch profile data (status: ${status || 'unknown'})`, 'error');
-                }
-            });
-
-        document.getElementById('avatarInput').onchange = function () {
-            const [file] = this.files;
-            if (file) document.getElementById('avatarPreview').src = URL.createObjectURL(file);
-        };
-
-        document.getElementById('formEditProfile').onsubmit = function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            axios.post('/api/profile/update', formData)
-                .then(res => {
-                    Swal.fire('Success', 'Profile has been updated', 'success').then(() => location.reload());
-                })
-                .catch(err => {
-                    Swal.fire('Failed', err.response?.data?.message || 'An error occurred', 'error');
-                });
-        };
-    </script>
 </body>
 </html>

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logbook - {{ $projek->pjk_nama }}</title>
 
-    {{-- Load CSS & JS --}}
     @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css', 'resources/css/Logbook.css', 'resources/js/Projek/logbook.js'])
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -13,7 +12,6 @@
 </head>
 <body>
     
-    {{-- Navbar --}}
     @include('components.NavbarSearchFilter', [
         'title' => 'Manajemen Projek',
         'showSearchFilter' => false, 
@@ -22,13 +20,10 @@
         'userRole' => auth()->user()->role ?? 'No Role'
     ])
 
-    {{-- Sidebar --}}
     <x-Sidebar :projectId="$projectId" activeMenu="logbook" />
 
-    {{-- Main Content --}}
     <main class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            {{-- Main Add Logbook Button --}}
             @if(count($logbooks) === 0 && count($tugas) > 0)
             <button class="btn-add-modul shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddLogbook">
                 <i class="bi bi-plus-lg"></i> Add Logbook Entry
@@ -44,7 +39,6 @@
             </nav> 
         </div>
 
-        {{-- CONDITION IF LOGBOOK IS EMPTY --}}
         @if(count($logbooks) === 0)
             <div class="card border-0 shadow-sm rounded-3 py-5">
                 <div class="card-body text-center">
@@ -59,7 +53,6 @@
                 </div>
             </div>
         @else
-            {{-- Logbook Table Section --}}
             <div class="card border shadow-sm rounded-3">
                 <div class="card-header card-header-dark py-3 px-4">
                     <h6 class="mb-0 fw-bold">Logbook Entries</h6>
@@ -80,7 +73,6 @@
                                     <th>DESCRIPTION</th>
                                 </tr>
                             </thead>
-                            {{-- Bagian Table Body --}}
                             <tbody>
                                 @forelse($logbooks as $index => $log)
                                     <tr>
@@ -113,7 +105,6 @@
                         </table>
                     </div>
 
-                    {{-- Tombol Tambah List --}}
                     <button class="btn-add-kegiatan w-100 mt-3" data-bs-toggle="modal" data-bs-target="#modalAddLogbook">
                         <i class="bi bi-plus-lg"></i> Add New Logbook Entry
                     </button>

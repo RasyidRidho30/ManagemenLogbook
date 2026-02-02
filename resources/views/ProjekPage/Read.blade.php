@@ -15,7 +15,7 @@
             'resources/css/ProjekRead.css', 
             'resources/js/Projek/read-projek.js', 
             'resources/js/Components/navbar.js'
-            ])
+        ])
 </head>
 <body>
 
@@ -37,27 +37,6 @@
                 <button type="button" class="btn btn-primary btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addProjekModal">
                     <i class="bi bi-plus-lg me-1"></i> Add Project
                 </button>
-            </div>
-        </div>
-
-        <div class="card mb-4 border-0 shadow-sm d-none" id="filterCard">
-            <div class="card-body">
-                <div class="row g-2 align-items-center">
-                    <div class="col-sm-5">
-                        <input id="search" class="form-control" type="text" placeholder="Search project name">
-                    </div>
-                    <div class="col-sm-3">
-                        <select id="status" class="form-select">
-                            <option value="">All statuses</option>
-                            <option value="InProgress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="OnHold">On Hold</option>
-                        </select>
-                    </div>
-                    <div class="col-sm-4 d-flex gap-2">
-                        <button id="searchBtn" type="button" class="btn btn-primary w-100">Search</button>
-                    </div>
-                </div>
             </div>
         </div>
 
