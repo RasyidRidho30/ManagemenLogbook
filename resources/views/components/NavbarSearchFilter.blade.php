@@ -1,6 +1,6 @@
 @props([
     'title' => 'Manajemen Projek',
-    'showSearchFilter' => true, {{-- Default true agar muncul di halaman daftar projek --}}
+    'showSearchFilter' => true,
     'userName' => null,
     'userRole' => null,
     'userAvatar' => null,
@@ -48,11 +48,6 @@
                         </div>
                     </div>
 
-                    @if($showNotificationBadge)
-                        <span class="notification-badge">
-                            <span class="notification-count">{{ $notificationCount }}</span>
-                        </span>
-                    @endif
                 </div>
             </div>
         </div>
@@ -60,25 +55,28 @@
 
     @if($showSearchFilter)
     <div class="navbar-bottom">
-        <div class="search-container">
-            <i class="bi bi-search search-icon"></i>
-            <input 
-                type="text" 
-                class="search-input" 
-                placeholder="{{ $searchPlaceholder }}"
-                id="navbarSearchInput"
-            >
+        <div class="search-container" style="min-width: 400px;">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input 
+                    type="text" 
+                    class="form-control border-start-0 border-end-0 ps-2" 
+                    placeholder="{{ $searchPlaceholder }}"
+                    id="navbarSearchInput"
+                >
+                <button class="btn btn-primary" type="button" id="navbarSearchBtn"><span class="bi bi-search"></span></button>
+            </div>
         </div>
 
         <div class="action-buttons">
-            {{-- FILTER BUTTON & DROPDOWN --}}
             <div class="dropdown-wrapper">
                 <button class="btn-filter" id="filterBtn">
                     <i class="bi bi-funnel"></i>
                     <span id="filterBtnText">Filter</span> 
                 </button>
                 
-                {{-- Menu Dropdown --}}
                 <div id="filterDropdown" class="custom-dropdown-menu d-none">
                     <div class="dropdown-item active" data-value="">Semua Status</div>
                     <div class="dropdown-item" data-value="InProgress">In Progress</div>

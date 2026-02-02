@@ -22,15 +22,11 @@ Route::post('/projek/render-cards', [ProjekCardController::class, 'renderCards']
 Route::prefix('projek/{id}')->group(function () {
     Route::get('/dashboard', [ProjekViewController::class, 'dashboard'])->name('projek.dashboard');
 
-    Route::get('/list', function ($id) {
-        return "Halaman List Projek $id";
-    });
+    Route::get('/list', [ProjekViewController::class, 'list'])->name('projek.list');
 
     Route::get('/jobs', [ProjekViewController::class, 'jobs'])->name('projek.jobs');
 
     Route::get('/edit', [ProjekViewController::class, 'edit'])->name('projek.edit');
 
-    Route::get('/logbook', function ($id) {
-        return "Halaman Logbook Projek $id";
-    });
+    Route::get('/logbook', [ProjekViewController::class, 'logbook'])->name('projek.logbook');
 });

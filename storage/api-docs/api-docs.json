@@ -721,7 +721,6 @@
                     "Projek"
                 ],
                 "summary": "Get Project Dashboard Stats",
-                "description": "Mengambil statistik ringkas (Total Task, Completed, Progress %) via SP sp_get_dashboard_card_stats",
                 "operationId": "837daa10858283849f1fc96f93c3f3d6",
                 "parameters": [
                     {
@@ -736,35 +735,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "pjk_id": {
-                                            "type": "integer"
-                                        },
-                                        "total_tasks": {
-                                            "type": "integer",
-                                            "example": 26
-                                        },
-                                        "completed_tasks": {
-                                            "type": "integer",
-                                            "example": 18
-                                        },
-                                        "project_progress": {
-                                            "type": "number",
-                                            "format": "float",
-                                            "example": 75.5
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Projek tidak ditemukan"
+                        "description": "Success"
                     }
                 },
                 "security": [
@@ -780,7 +751,6 @@
                     "Projek"
                 ],
                 "summary": "Get Project Breakdown (Modul & Kegiatan)",
-                "description": "Mengambil detail progress per modul dan kegiatan via SP sp_get_project_breakdown",
                 "operationId": "616cacc2f28c95c204715992bac5e14b",
                 "parameters": [
                     {
@@ -795,22 +765,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "properties": {
-                                            "nama_item": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                }
-                            }
-                        }
+                        "description": "Success"
                     }
                 },
                 "security": [
@@ -841,69 +796,6 @@
                 "responses": {
                     "200": {
                         "description": "Success"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/projek/{id}/members": {
-            "get": {
-                "tags": [
-                    "Projek"
-                ],
-                "summary": "Get list of project members",
-                "description": "Mengambil daftar anggota yang terdaftar dalam projek tertentu",
-                "operationId": "495cf04dc33551d4d5ce5e56c0a0c29a",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID Projek",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of members",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "usr_id": {
-                                                        "type": "integer"
-                                                    },
-                                                    "usr_first_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "usr_last_name": {
-                                                        "type": "string"
-                                                    },
-                                                    "mpk_role_projek": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Projek tidak ditemukan"
                     }
                 },
                 "security": [

@@ -49,8 +49,6 @@
                     </div>
                 </div>
                 
-                <a href="#" class="forgot-password">Forgot password?</a>
-
                 <button type="button" id="loginBtn" class="btn-login">Log In</button>
                 <a href="/signup" class="btn-signup">Sign Up</a>
             </form>

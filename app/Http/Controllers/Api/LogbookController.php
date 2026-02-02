@@ -48,10 +48,10 @@ class LogbookController extends Controller
             // TANGKAP ERROR DAN TAMPILKAN
             return response()->json([
                 'status' => 'ERROR',
-                'message' => $e->getMessage(), // <--- Ini pesan error aslinya
+                'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'input_params' => $request->all() // Cek apa yang dikirim
+                'input_params' => $request->all()
             ], 500);
         }
     }

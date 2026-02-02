@@ -62,4 +62,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projek/{id}/members', [App\Http\Controllers\Api\ProjekController::class, 'getMembers']);
 
     Route::post('/profile/update', [UserController::class, 'update']);
+
+    // === RUTE BARU UNTUK MEMBER ===
+    Route::get('/projek/{id}/member', [ProjekController::class, 'getMembers']);
+    Route::post('/projek/{id}/member', [ProjekController::class, 'addMember']);
+    Route::put('/projek/{id}/member/{member_id}', [ProjekController::class, 'updateMember']);
+    Route::delete('/projek/{id}/member/{member_id}', [ProjekController::class, 'removeMember']);
+
+    // === RUTE BARU UNTUK DROPDOWN USER ===
+    Route::get('/users', [ProjekController::class, 'getUsers']);
 });

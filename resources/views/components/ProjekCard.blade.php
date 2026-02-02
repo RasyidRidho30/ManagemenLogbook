@@ -101,8 +101,7 @@
         </div>
 
         <div class="hover-detail-text">
-            Klik untuk melihat detail
+            Click to view details
         </div>
-
     </div>
 </div>

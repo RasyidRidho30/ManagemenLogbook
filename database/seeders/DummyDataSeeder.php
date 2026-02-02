@@ -29,8 +29,9 @@ class DummyDataSeeder extends Seeder
         // 1. CREATE USERS
         // =================================================================
         $password = Hash::make('password123');
+        $pswAdmin = Hash::make('admin');
 
-        $u1 = DB::select('CALL sp_create_user(?, ?, ?, ?, ?, ?)', ['rasyid_ridho', 'rasyid@polman.astra.ac.id', $password, 'Rasyid', 'Ridho', 'Admin']);
+        $u1 = DB::select('CALL sp_create_user(?, ?, ?, ?, ?, ?)', ['rasyid_ridho', 'rasyid@polman.astra.ac.id', $password, 'Rasyid', 'Ridho', 'User']);
         $idRasyid = $u1[0]->new_usr_id;
 
         $u2 = DB::select('CALL sp_create_user(?, ?, ?, ?, ?, ?)', ['raihan_masri', 'raihan@example.com', $password, 'Raihan', 'Masri', 'User']);
@@ -44,6 +45,8 @@ class DummyDataSeeder extends Seeder
 
         $u5 = DB::select('CALL sp_create_user(?, ?, ?, ?, ?, ?)', ['pinow_tems', 'pinow@example.com', $password, 'Pinow', 'Tems', 'User']);
         $idPinow = $u5[0]->new_usr_id;
+
+        $u6 = DB::select('CALL sp_create_user(?, ?, ?, ?, ?, ?)', ['admin', 'admin@admin.com', $pswAdmin, 'Admin', '', 'Admin']);
 
         $this->command->info('✅ 5 User berhasil dibuat.');
 

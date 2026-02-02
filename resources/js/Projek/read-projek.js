@@ -2,8 +2,6 @@ import "../bootstrap";
 import { Modal } from "bootstrap";
 
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("projek.js loaded");
-
     const apiBase = "/api";
     const container = document.getElementById("projekContainer");
     const searchEl = document.getElementById("search");
@@ -88,7 +86,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             container.innerHTML = response.data.html;
         } catch (err) {
-            console.error("Fallback rendering active:", err);
             container.innerHTML = "";
             projects.forEach((p) => {
                 const col = document.createElement("div");
@@ -214,14 +211,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    if (navbarSearchInput) {
-        let searchTimeout;
-        navbarSearchInput.addEventListener("input", (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => loadProjects(e.target.value), 500);
-        });
-    }
-
     if (filterBtn) {
         filterBtn.addEventListener("click", () => {
             filterBtn.classList.toggle("active");
@@ -257,6 +246,10 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener("navbar-filter", function (e) {
         currentStatusFilter = e.detail.status;
         loadProjects();
+    });
+
+    window.addEventListener("navbar-search", function (e) {
+        loadProjects(e.detail.searchValue);
     });
 
     window.showProjectDetail = function (id) {

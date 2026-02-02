@@ -24,11 +24,10 @@ class ProjekController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $userId = $user->usr_id; 
-        $userRole = $user->usr_role; 
+        $userId = $user->usr_id;
+        $userRole = $user->usr_role;
 
-        // Logika Filter Berdasarkan Role
-        if ($userRole === 'admin') {
+        if ($userRole === 'Admin') {
             $projek = DB::select('CALL sp_read_projek(NULL, ?, ?)', [
                 $request->search,
                 $request->status
@@ -40,30 +39,24 @@ class ProjekController extends Controller
                 WHERE m.usr_id = ?
             ";
 
-            // Tambahkan filter search dan status jika ada
             if ($request->search) $query .= " AND p.pjk_nama LIKE '%{$request->search}%'";
             if ($request->status) $query .= " AND p.pjk_status = '{$request->status}'";
 
             $projek = DB::select($query, [$userId]);
         }
 
-        // Enrich data (Tetap sama seperti kode Anda sebelumnya)
         foreach ($projek as $p) {
-            // Ambil Statistik
             $stats = DB::select('CALL sp_get_dashboard_card_stats(?)', [$p->pjk_id]);
             $stats = $stats[0] ?? null;
             $p->total_tasks = $stats->total_tasks ?? 0;
             $p->completed_tasks = $stats->completed_tasks ?? 0;
 
-            // Ambil Nama Ketua
             $leader = DB::select('SELECT CONCAT(u.usr_first_name, " ", u.usr_last_name) as leader_name FROM users u JOIN member_projek m ON u.usr_id = m.usr_id WHERE m.pjk_id = ? AND m.mpk_role_projek = "Ketua" LIMIT 1', [$p->pjk_id]);
             $p->leader_name = $leader[0]->leader_name ?? null;
 
-            // Ambil Nama PIC (Member selain Ketua)
             $pic = DB::select('SELECT CONCAT(u.usr_first_name, " ", u.usr_last_name) as pic_name FROM users u JOIN member_projek m ON u.usr_id = m.usr_id WHERE m.pjk_id = ? AND m.mpk_role_projek <> "Ketua" ORDER BY m.mpk_create_at ASC LIMIT 1', [$p->pjk_id]);
             $p->pic_name = $pic[0]->pic_name ?? null;
 
-            // Ambil Nama Pembuat Projek
             $creator = DB::select('SELECT CONCAT(u.usr_first_name, " ", u.usr_last_name) as creator_name FROM users u WHERE u.usr_username = ? LIMIT 1', [$p->pjk_create_by]);
             $p->creator_name = $creator[0]->creator_name ?? null;
         }
@@ -134,16 +127,13 @@ class ProjekController extends Controller
     )]
     public function show($id)
     {
-        // 1. Panggil SP Read Projek (p_pjk_id = $id)
         $result = DB::select('CALL sp_read_projek(?, NULL, NULL)', [$id]);
         $projek = $result[0] ?? null;
 
         if (!$projek) return response()->json(['message' => 'Not Found'], 404);
 
-        // 2. Ambil Statistik Dashboard
         $stats = DB::select('CALL sp_get_dashboard_card_stats(?)', [$id]);
 
-        // 3. Ambil Breakdown Modul & Kegiatan
         $breakdown = DB::select('CALL sp_get_project_breakdown(?)', [$id]);
 
         return response()->json([
@@ -185,8 +175,8 @@ class ProjekController extends Controller
             DB::select('CALL sp_update_projek(?, ?, ?, ?, ?, ?, ?, ?)', [
                 $id,
                 $request->nama ?? $oldData->pjk_nama,
-                $request->pic ?? $oldData->pjk_pic,
                 $request->deskripsi ?? $oldData->pjk_deskripsi,
+                $request->pic ?? $oldData->pjk_pic,
                 $request->tgl_mulai ?? $oldData->pjk_tanggal_mulai,
                 $request->tgl_selesai ?? $oldData->pjk_tanggal_selesai,
                 $request->status ?? $oldData->pjk_status,
@@ -213,29 +203,13 @@ class ProjekController extends Controller
         return response()->json(['message' => 'Projek deleted']);
     }
 
-    // ... (GetDashboardStats & Recalculate tetap sama seperti sebelumnya, tidak berubah)
     #[OA\Get(
         path: "/api/projek/{id}/stats",
         tags: ["Projek"],
         summary: "Get Project Dashboard Stats",
-        description: "Mengambil statistik ringkas (Total Task, Completed, Progress %) via SP sp_get_dashboard_card_stats",
         security: [["bearerAuth" => []]],
         parameters: [new OA\Parameter(name: "id", in: "path", required: true, description: "ID Projek", schema: new OA\Schema(type: "integer"))],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Success",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: "pjk_id", type: "integer"),
-                        new OA\Property(property: "total_tasks", type: "integer", example: 26),
-                        new OA\Property(property: "completed_tasks", type: "integer", example: 18),
-                        new OA\Property(property: "project_progress", type: "number", format: "float", example: 75.50)
-                    ]
-                )
-            ),
-            new OA\Response(response: 404, description: "Projek tidak ditemukan")
-        ]
+        responses: [new OA\Response(response: 200, description: "Success")]
     )]
     public function getDashboardStats($id)
     {
@@ -248,16 +222,9 @@ class ProjekController extends Controller
         path: "/api/projek/{id}/breakdown",
         tags: ["Projek"],
         summary: "Get Project Breakdown (Modul & Kegiatan)",
-        description: "Mengambil detail progress per modul dan kegiatan via SP sp_get_project_breakdown",
         security: [["bearerAuth" => []]],
         parameters: [new OA\Parameter(name: "id", in: "path", required: true, description: "ID Projek", schema: new OA\Schema(type: "integer"))],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "Success",
-                content: new OA\JsonContent(type: "array", items: new OA\Items(properties: [new OA\Property(property: "nama_item", type: "string")]))
-            )
-        ]
+        responses: [new OA\Response(response: 200, description: "Success")]
     )]
     public function getProjectBreakdown($id)
     {
@@ -283,65 +250,127 @@ class ProjekController extends Controller
         }
     }
 
-    #[OA\Get(
-        path: "/api/projek/{id}/members",
-        tags: ["Projek"],
-        summary: "Get list of project members",
-        description: "Mengambil daftar anggota yang terdaftar dalam projek tertentu",
-        security: [["bearerAuth" => []]],
-        parameters: [
-            new OA\Parameter(
-                name: "id",
-                in: "path",
-                required: true,
-                description: "ID Projek",
-                schema: new OA\Schema(type: "integer")
-            )
-        ],
-        responses: [
-            new OA\Response(
-                response: 200,
-                description: "List of members",
-                content: new OA\JsonContent(
-                    type: "object",
-                    properties: [
-                        new OA\Property(
-                            property: "data",
-                            type: "array",
-                            items: new OA\Items(
-                                properties: [
-                                    new OA\Property(property: "usr_id", type: "integer"),
-                                    new OA\Property(property: "usr_first_name", type: "string"),
-                                    new OA\Property(property: "usr_last_name", type: "string"),
-                                    new OA\Property(property: "mpk_role_projek", type: "string")
-                                ]
-                            )
-                        )
-                    ]
-                )
-            ),
-            new OA\Response(response: 404, description: "Projek tidak ditemukan")
-        ]
-    )]
+    /* =========================================================================
+       TEAM MANAGEMENT FEATURES (ADDED)
+       ========================================================================= */
+
+    /**
+     * Get list of project members
+     */
     public function getMembers($id)
     {
-        $projekExists = DB::select('SELECT 1 FROM projek WHERE pjk_id = ? LIMIT 1', [$id]);
-        if (empty($projekExists)) {
-            return response()->json(['message' => 'Projek tidak ditemukan'], 404);
-        }
-
-        $members = DB::table('member_projek')
+        $rawMembers = DB::table('member_projek')
             ->join('users', 'member_projek.usr_id', '=', 'users.usr_id')
             ->where('member_projek.pjk_id', $id)
             ->select(
-                'users.usr_id',
+                'member_projek.mpk_id as id',
+                'member_projek.mpk_role_projek as role',
+                'users.usr_id as user_id',
                 'users.usr_first_name',
                 'users.usr_last_name',
-                'member_projek.mpk_role_projek',
-                'users.usr_role'
+                'users.usr_email'
             )
             ->get();
 
-        return response()->json(['data' => $members]);
+        $members = $rawMembers->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'role' => $m->role,
+                'user' => [
+                    'id' => $m->user_id,
+                    'name' => trim($m->usr_first_name . ' ' . $m->usr_last_name),
+                    'email' => $m->usr_email
+                ]
+            ];
+        });
+
+        return response()->json($members);
+    }
+
+    public function addMember(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,usr_id',
+            'role' => 'required|string|max:50',
+        ]);
+
+        $exists = DB::table('member_projek')
+            ->where('pjk_id', $id)
+            ->where('usr_id', $request->user_id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json(['message' => 'User is already a member of this project'], 422);
+        }
+
+        DB::table('member_projek')->insert([
+            'pjk_id' => $id,
+            'usr_id' => $request->user_id,
+            'mpk_role_projek' => $request->role,
+        ]);
+
+        return response()->json(['message' => 'Member added successfully'], 201);
+    }
+
+    public function removeMember($id, $memberId)
+    {
+        $deleted = DB::table('member_projek')
+            ->where('pjk_id', $id)
+            ->where('mpk_id', $memberId)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json(['message' => 'Member removed successfully']);
+        }
+
+        return response()->json(['message' => 'Member not found'], 404);
+    }
+
+    public function updateMember(Request $request, $id, $memberId)
+    {
+        $request->validate([
+            'role' => 'required|string|max:50',
+        ]);
+
+        $updated = DB::table('member_projek')
+            ->where('pjk_id', $id)
+            ->where('mpk_id', $memberId)
+            ->update([
+                'mpk_role_projek' => $request->role,
+            ]);
+
+        if ($updated) {
+            return response()->json(['message' => 'Member role updated successfully']);
+        }
+
+        return response()->json(['message' => 'Member not found or no changes made'], 404);
+    }
+
+    public function getUsers(Request $request)
+    {
+        $query = DB::table('users');
+
+        if ($request->has('role')) {
+            $query->where('usr_role', $request->role);
+        }
+
+        if ($request->has('exclude_project')) {
+            $projectId = $request->exclude_project;
+
+            $query->whereNotExists(function ($subquery) use ($projectId) {
+                $subquery->select(DB::raw(1))
+                    ->from('member_projek')
+                    ->whereRaw('member_projek.usr_id = users.usr_id')
+                    ->where('member_projek.pjk_id', $projectId);
+            });
+        }
+
+        $users = $query->select(
+            'usr_id as id',
+            DB::raw("CONCAT(usr_first_name, ' ', usr_last_name) as name"),
+            'usr_email as email'
+        )->get();
+
+        return response()->json($users);
     }
 }

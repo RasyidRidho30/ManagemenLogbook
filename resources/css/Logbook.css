@@ -1,0 +1,77 @@
+/* Layout Utama */
+.main-content {
+    margin-left: 125px;
+    padding: 2rem;
+    padding-top: 20px;
+}
+
+/* Header Card Biru Tua */
+.card-header-dark {
+    background-color: #143752;
+    color: white;
+    font-weight: 600;
+}
+
+/* Styling Tabel Logbook Sesuai dengan Jobs */
+.table-logbook thead th {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    border: none;
+    font-weight: 600;
+    padding-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.table-logbook tbody td {
+    font-size: 0.85rem;
+    padding: 12px 8px;
+    color: #333;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+/* Warna khusus untuk baris tertentu jika diperlukan */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Styling tombol Tambah (Add) */
+.btn-add-kegiatan {
+    border: 2px solid #1e5a8a;
+    padding: 0.4rem 0;
+    border-radius: 5px;
+    color: #143752;
+    background-color: transparent;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-add-kegiatan:hover {
+    background-color: #1e5a8a;
+    color: white;
+}
+
+.btn-add-modul {
+    background-color: #1e5a8a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-weight: 600;
+    transition: all 0.1s;
+}
+
+.btn-add-modul:hover {
+    background-color: #184466;
+    color: white;
+}
+
+/* Styling Scrollbar Table Responsive (Optional) */
+.table-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}

@@ -39,11 +39,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                 } catch (e) {}
             }
         } catch (e) {
-            console.error("Failed to fetch user data:", e);
+            console.error(e);
         }
     }
 
     const navbarSearchInput = document.getElementById("navbarSearchInput");
+    const navbarSearchBtn = document.getElementById("navbarSearchBtn");
+
     const filterBtn = document.getElementById("filterBtn");
     const filterBtnText = document.getElementById("filterBtnText");
     const filterDropdown = document.getElementById("filterDropdown");
@@ -52,14 +54,27 @@ document.addEventListener("DOMContentLoaded", async function () {
     );
     const sortBtn = document.getElementById("sortBtn");
 
+    function triggerSearch(value) {
+        window.dispatchEvent(
+            new CustomEvent("navbar-search", {
+                detail: { searchValue: value },
+            }),
+        );
+    }
+
     if (navbarSearchInput) {
-        navbarSearchInput.addEventListener("input", function (e) {
-            window.dispatchEvent(
-                new CustomEvent("navbar-search", {
-                    detail: { searchValue: e.target.value },
-                }),
-            );
+        navbarSearchInput.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                triggerSearch(this.value);
+            }
         });
+
+        if (navbarSearchBtn) {
+            navbarSearchBtn.addEventListener("click", function () {
+                triggerSearch(navbarSearchInput.value);
+            });
+        }
     }
 
     if (filterBtn && filterDropdown) {
