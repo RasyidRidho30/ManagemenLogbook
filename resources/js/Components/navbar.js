@@ -36,6 +36,15 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                 try {
                     localStorage.setItem("user_data", JSON.stringify(user));
+                    
+                    const kategoriBtn = document.getElementById('kategoriBtn');
+                    if (kategoriBtn) {
+                        if (user.role && user.role.toLowerCase() === 'admin') {
+                            kategoriBtn.style.display = 'flex';
+                        } else {
+                            kategoriBtn.style.display = 'none';
+                        }
+                    }
                 } catch (e) {}
             }
         } catch (e) {

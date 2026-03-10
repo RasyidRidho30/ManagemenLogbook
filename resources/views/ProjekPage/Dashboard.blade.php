@@ -72,7 +72,7 @@
                                         @if($item->tipe_item === 'Modul')
                                             <tr class="modul-row">
                                                 <td class="text-center"><i class="bi bi-folder2-open"></i></td>
-                                                <td colspan="2">MODULE : {{ $item->nama_item }}</td>
+                                                <td colspan="2">MODULE   : {{ $item->nama_item }}</td>
                                                 <td class="text-center">{{ $item->bobot_angka }}</td>
                                                 <td class="text-center">{{ number_format($item->prosentase_item, 2) }}%</td>
                                                 <td></td> 

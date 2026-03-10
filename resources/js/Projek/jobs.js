@@ -4,6 +4,127 @@ const apiToken = localStorage.getItem("api_token");
 axios.defaults.headers.common["Authorization"] = `Bearer ${apiToken}`;
 axios.defaults.headers.common["Accept"] = "application/json";
 
+// ========== DATE VALIDATION UTILITY FUNCTIONS ==========
+// Mengambil batas tanggal dari hidden input di Blade
+const getProjectDates = () => {
+    const start = document.getElementById("pjk_start_date")?.value;
+    const end = document.getElementById("pjk_end_date")?.value;
+    return { start, end };
+};
+
+const initializeDateValidation = () => {
+    const tglMulaiInput = document.getElementById("add_tgl_mulai");
+    const tglSelesaiInput = document.getElementById("add_tgl_selesai");
+    const alertBox = document.getElementById("alertAddTugas");
+    const { start: pjkStart, end: pjkEnd } = getProjectDates();
+
+    if (tglMulaiInput) {
+        // Set batas minimal dan maksimal sesuai umur Projek
+        if (pjkStart) tglMulaiInput.setAttribute("min", pjkStart);
+        if (pjkEnd) tglMulaiInput.setAttribute("max", pjkEnd);
+
+        tglMulaiInput.addEventListener("change", function () {
+            if (alertBox) alertBox.innerHTML = "";
+
+            if (!this.value) {
+                if (tglSelesaiInput) {
+                    tglSelesaiInput.disabled = false;
+                    tglSelesaiInput.value = "";
+                    if (pjkStart) tglSelesaiInput.setAttribute("min", pjkStart);
+                }
+            } else {
+                const mulaiDate = new Date(this.value);
+                const pjkStartDate = pjkStart ? new Date(pjkStart) : null;
+                const pjkEndDate = pjkEnd ? new Date(pjkEnd) : null;
+
+                // Validasi: Start Date tidak boleh mendahului Start Projek
+                if (pjkStartDate && mulaiDate < pjkStartDate) {
+                    this.value = "";
+                    if (alertBox)
+                        alertBox.innerHTML = `<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>Start date cannot be before project start date!</div>`;
+                    if (tglSelesaiInput) tglSelesaiInput.value = "";
+                }
+                // Validasi: Start Date tidak boleh melebihi End Projek
+                else if (pjkEndDate && mulaiDate > pjkEndDate) {
+                    this.value = "";
+                    if (alertBox)
+                        alertBox.innerHTML = `<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>Start date cannot be after project end date!</div>`;
+                    if (tglSelesaiInput) tglSelesaiInput.value = "";
+                } else {
+                    // Jika valid, set 'min' untuk tgl_selesai berdasarkan tgl_mulai ini
+                    if (tglSelesaiInput) {
+                        tglSelesaiInput.setAttribute("min", this.value);
+                        if (pjkEnd) tglSelesaiInput.setAttribute("max", pjkEnd);
+
+                        // Reset tgl_selesai jika terlanjur salah
+                        if (tglSelesaiInput.value) {
+                            const selesaiDate = new Date(tglSelesaiInput.value);
+                            if (selesaiDate < mulaiDate) {
+                                tglSelesaiInput.value = "";
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (tglSelesaiInput) {
+        if (pjkEnd) tglSelesaiInput.setAttribute("max", pjkEnd);
+
+        tglSelesaiInput.addEventListener("change", function () {
+            if (alertBox) alertBox.innerHTML = "";
+
+            if (this.value) {
+                const selesaiDate = new Date(this.value);
+                const mulaiVal = tglMulaiInput ? tglMulaiInput.value : null;
+                const pjkEndDate = pjkEnd ? new Date(pjkEnd) : null;
+
+                if (mulaiVal && selesaiDate < new Date(mulaiVal)) {
+                    this.value = "";
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date cannot be before start date!</div>';
+                } else if (pjkEndDate && selesaiDate > pjkEndDate) {
+                    this.value = "";
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date cannot exceed project end date!</div>';
+                }
+            }
+        });
+    }
+};
+
+const initializeEditDateValidation = () => {
+    const tglSelesaiInput = document.getElementById("edit_tgl_selesai");
+    const alertBox = document.getElementById("alertEditTugas");
+    const { end: pjkEnd } = getProjectDates();
+
+    if (tglSelesaiInput) {
+        // Hapus batas 'today' dan ganti dengan batas akhir projek
+        tglSelesaiInput.removeAttribute("min");
+        if (pjkEnd) tglSelesaiInput.setAttribute("max", pjkEnd);
+
+        tglSelesaiInput.addEventListener("change", function () {
+            if (alertBox) alertBox.innerHTML = "";
+            if (this.value) {
+                const selesaiDate = new Date(this.value);
+                const pjkEndDate = pjkEnd ? new Date(pjkEnd) : null;
+
+                if (pjkEndDate && selesaiDate > pjkEndDate) {
+                    this.value = "";
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date cannot exceed project end date!</div>';
+                }
+            }
+        });
+    }
+};
+
+// ... MODAL HANDLERS (Tidak Berubah) ...
+
 window.openModalKegiatan = (mdlId, mdlNama) => {
     document.getElementById("input_mdl_id").value = mdlId;
     document.getElementById("title_mdl").innerText = mdlNama;
@@ -17,6 +138,11 @@ window.openModalTugas = (kgtId, kgtNama) => {
     const projectId = window.location.pathname.split("/")[2];
     const selectPic = document.getElementById("select_pic");
     selectPic.innerHTML = '<option value="">Select Team Member PIC...</option>';
+
+    initializeDateValidation();
+
+    const alertBox = document.getElementById("alertAddTugas");
+    if (alertBox) alertBox.innerHTML = "";
 
     axios
         .get(`/api/projek/${projectId}/member`)
@@ -62,8 +188,21 @@ window.openModalEditTugas = (tgsId) => {
             });
 
             const modalEl = document.getElementById("modalEditTugas");
+            const alertBox = document.getElementById("alertEditTugas");
+            if (alertBox) alertBox.innerHTML = "";
+
             modalEl.removeAttribute("aria-hidden");
-            new bootstrap.Modal(modalEl).show();
+            const modal = new bootstrap.Modal(modalEl);
+
+            modalEl.addEventListener(
+                "shown.bs.modal",
+                function () {
+                    initializeEditDateValidation();
+                },
+                { once: true },
+            );
+
+            modal.show();
         })
         .catch(() =>
             Swal.fire("Error", "Failed to retrieve task details", "error"),
@@ -90,8 +229,6 @@ window.openModalEditModul = (mdlId, mdlNama) => {
             ).show();
         })
         .catch(() => {
-            console.error("Failed to fetch module details");
-            // Fallback: just set the name and use default sequence
             document.getElementById("edit_mdl_id").value = mdlId;
             document.getElementById("edit_mdl_nama").value = mdlNama;
             document.getElementById("edit_mdl_urut").value = 1;
@@ -101,15 +238,85 @@ window.openModalEditModul = (mdlId, mdlNama) => {
         });
 };
 
+// ========== FORM SUBMIT HANDLERS ==========
+
 document.addEventListener("DOMContentLoaded", () => {
     const handleForm = (formId, method, urlGen) => {
         const form = document.getElementById(formId);
         if (!form) return;
         form.addEventListener("submit", function (e) {
             e.preventDefault();
+
+            const { start: pjkStart, end: pjkEnd } = getProjectDates();
+            const pjkStartDate = pjkStart ? new Date(pjkStart) : null;
+            const pjkEndDate = pjkEnd ? new Date(pjkEnd) : null;
+
+            // Validasi Submit formAddTugas
+            if (formId === "formAddTugas") {
+                const alertBox = document.getElementById("alertAddTugas");
+                const tglMulaiValue =
+                    document.getElementById("add_tgl_mulai").value;
+                const tglSelesaiValue =
+                    document.getElementById("add_tgl_selesai").value;
+
+                if (!tglMulaiValue || !tglSelesaiValue) {
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>Dates are required!</div>';
+                    return;
+                }
+
+                const mulaiDate = new Date(tglMulaiValue);
+                const selesaiDate = new Date(tglSelesaiValue);
+
+                if (pjkStartDate && mulaiDate < pjkStartDate) {
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>Start date cannot be before project start date!</div>';
+                    return;
+                }
+                if (selesaiDate < mulaiDate) {
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date cannot be before start date!</div>';
+                    return;
+                }
+                if (pjkEndDate && selesaiDate > pjkEndDate) {
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date cannot exceed project end date!</div>';
+                    return;
+                }
+                if (alertBox) alertBox.innerHTML = "";
+            }
+
+            // Validasi Submit formEditTugas
+            if (formId === "formEditTugas") {
+                const alertBox = document.getElementById("alertEditTugas");
+                const tglSelesaiValue =
+                    document.getElementById("edit_tgl_selesai").value;
+
+                if (!tglSelesaiValue) {
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date is required!</div>';
+                    return;
+                }
+
+                const selesaiDate = new Date(tglSelesaiValue);
+                if (pjkEndDate && selesaiDate > pjkEndDate) {
+                    if (alertBox)
+                        alertBox.innerHTML =
+                            '<div class="alert alert-warning small py-2 mb-0"><i class="bi bi-exclamation-circle me-2"></i>End date cannot exceed project end date!</div>';
+                    return;
+                }
+                if (alertBox) alertBox.innerHTML = "";
+            }
+
             const id = document.getElementById("edit_tgs_id")?.value;
             const url = typeof urlGen === "function" ? urlGen(id) : urlGen;
             let data;
+
             if (formId === "formEditTugas") {
                 data = {
                     nama: document.getElementById("edit_nama").value,
@@ -127,16 +334,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     Swal.fire({
                         icon: "success",
                         title: "Success!",
+                        text: "The task has been updated.",
                         showConfirmButton: false,
                         timer: 1500,
+                        toast: true,
+                        position: "top-end",
                     }).then(() => location.reload());
                 })
                 .catch((err) =>
-                    Swal.fire(
-                        "Failed",
-                        err.response?.data?.message || "An error occurred",
-                        "error",
-                    ),
+                    Swal.fire({
+                        icon: "error",
+                        title: "Failed",
+                        text: err.response?.data?.message || "An error occurred",
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: "top-end",
+                    }),
+                   
                 );
         });
     };
@@ -163,16 +378,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     Swal.fire({
                         icon: "success",
                         title: "Success!",
+                        text: "The module has been updated.",
                         showConfirmButton: false,
                         timer: 1500,
+                        toast: true,
+                        position: "top-end",
                     }).then(() => location.reload());
                 })
                 .catch((err) =>
-                    Swal.fire(
-                        "Failed",
-                        err.response?.data?.message || "An error occurred",
-                        "error",
-                    ),
+                    Swal.fire({
+                        icon: "error",
+                        title: "Failed",
+                        text: err.response?.data?.message || "An error occurred",
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: "top-end",
+                    }),
                 );
         });
     }
@@ -197,11 +419,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         bootstrap.Modal.getInstance(
                             document.getElementById("modalEditModul"),
                         ).hide();
-                        Swal.fire(
-                            "Deleted!",
-                            "The module has been removed.",
-                            "success",
-                        ).then(() => location.reload());
+                        Swal.fire({
+                            icon: "success",
+                            title: "Deleted!",
+                            text:"The module has been removed.",
+                            timer: 1500,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: "top-end",
+                        }).then(() => location.reload());
                     });
                 }
             });
@@ -224,6 +450,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     Swal.fire({
                         icon: "success",
                         title: "Success!",
+                        text: "The activity has been updated.",
+                        toast: true,
+                        position: "top-end",
                         showConfirmButton: false,
                         timer: 1500,
                     }).then(() => location.reload());
@@ -238,7 +467,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // === DELETE KEGIATAN ===
     const btnHapusKegiatan = document.getElementById("btnHapusKegiatan");
     if (btnHapusKegiatan) {
         btnHapusKegiatan.onclick = () => {
@@ -260,15 +488,68 @@ document.addEventListener("DOMContentLoaded", () => {
                             document.getElementById("modalEditKegiatan"),
                         ).hide();
                         Swal.fire(
-                            "Deleted!",
-                            "The activity has been removed.",
-                            "success",
+                            {
+                                icon: "success",
+                                title: "Deleted!",
+                                text: "The activity has been removed.",
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                                toast: true,
+                                position: "top-end",
+                            }
                         ).then(() => location.reload());
                     });
                 }
             });
         };
     }
+
+    const formImportExcel = document.querySelector(
+        'form[action*="jobs/import"]',
+    );
+     if (formImportExcel) {
+         formImportExcel.addEventListener("submit", function (e) {
+             e.preventDefault();
+             const url = this.action;
+             const formData = new FormData(this);
+             const btnSubmit = this.querySelector('button[type="submit"]');
+             const originalText = btnSubmit.innerHTML;
+
+             btnSubmit.innerHTML =
+                 '<span class="spinner-border spinner-border-sm"></span> Importing...';
+             btnSubmit.disabled = true;
+
+             axios
+                 .post(url, formData, {
+                     headers: { "Content-Type": "multipart/form-data" },
+                 })
+                 .then(() => {
+                     const modalEl =
+                         document.getElementById("modalImportExcel");
+                     if (modalEl) bootstrap.Modal.getInstance(modalEl).hide();
+                     Swal.fire({
+                         icon: "success",
+                         title: "Import Successful!",
+                         text: "Data jobs berhasil dimasukkan.",
+                         showConfirmButton: false,
+                         timer: 1500,
+                     }).then(() => location.reload());
+                 })
+                 .catch((err) => {
+                     btnSubmit.innerHTML = originalText;
+                     btnSubmit.disabled = false;
+                     Swal.fire(
+                         "Import Failed",
+                         err.response?.data?.message ||
+                             "Terjadi kesalahan saat import data.",
+                         "error",
+                     );
+                 });
+         });
+     }
+
 
     const btnHapus = document.getElementById("btnHapusTugas");
     if (btnHapus) {
@@ -290,9 +571,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (result.isConfirmed) {
                     axios.delete(`/api/tugas/${id}`).then(() => {
                         Swal.fire(
-                            "Deleted!",
-                            "The task has been removed.",
-                            "success",
+                            {
+                                icon: "success",
+                                title: "Deleted!",
+                                text: "The task has been removed.",
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 2000,
+                            }
                         ).then(() => location.reload());
                     });
                 }

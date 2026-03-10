@@ -5,7 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Edit Project - {{ $projectId }}</title>
 
-    @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css', 'resources/js/Projek/edit-projek.js', 'resources/css/EditProjek.css'])
+    {{-- Hanya dipanggil 1x di sini saja --}}
+    @vite([
+        'resources/css/app.css', 
+        'resources/css/NavbarSearchFilter.css', 
+        'resources/css/Sidebar.css', 
+        'resources/css/EditProjek.css',
+        'resources/js/Projek/edit-projek.js'
+    ])
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -44,6 +52,13 @@
                                 </div>
 
                                 <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <select id="pjk_kategori" class="form-select" required>
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
                                     <label class="form-label">Description</label>
                                     <textarea id="pjk_deskripsi" class="form-control" rows="4"></textarea>
                                 </div>
@@ -56,6 +71,7 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Project Status</label>
                                         <select id="pjk_status" class="form-select">
+                                            <option value="Pending">Pending</option>
                                             <option value="InProgress">In Progress</option>
                                             <option value="Completed">Completed</option>
                                             <option value="OnHold">On Hold</option>
@@ -77,7 +93,7 @@
                                 <hr class="my-4">
 
                                 <div class="d-flex justify-content-between mt-4">
-                                    <button type="button" id="btnHapusProjek" class="btn btn-outline-danger px-4">
+                                    <button type="button" id="btnHapusProjek" class="btn btn-outline-danger px-4" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
                                         <i class="bi bi-trash me-2"></i>Delete Project
                                     </button>
                                     <button type="submit" class="btn btn-primary px-5 shadow-sm">
@@ -101,7 +117,7 @@
                             </div>
                         </div>
                         <div class="card-footer bg-white p-3 border-top">
-                            <button type="button" class="btn btn-outline-primary w-100 dashed-border" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                            <button type="button" id="btnAddTeamMember" class="btn btn-outline-primary w-100 dashed-border">
                                 <i class="bi bi-plus-lg me-2"></i>Add Team Member
                             </button>
                         </div>
@@ -111,6 +127,7 @@
         </div>
     </main>
 
+    {{-- MODAL ADD MEMBER --}}
     <div class="modal fade" id="addMemberModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 overflow-hidden">
@@ -146,7 +163,8 @@
 
                     <div class="d-grid">
                         <button type="button" id="btnSubmitAddMember" class="btn btn-primary py-2 fw-bold" disabled>
-                            Add Member
+                            <span id="btnSubmitText">Add Member</span>
+                            <span id="btnSubmitLoader" class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true" style="display: none;"></span>
                         </button>
                     </div>
                 </div>
@@ -154,6 +172,7 @@
         </div>
     </div>
 
+    {{-- MODAL EDIT MEMBER ROLE --}}
     <div class="modal fade" id="editMemberModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0">
@@ -184,10 +203,45 @@
         </div>
     </div>
 
+    {{-- DELETE PROJECT CONFIRMATION MODAL --}}
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0">
+                <div class="modal-header modal-header-dark p-3">
+                    <h5 class="modal-title fw-bold text-white">Delete Project</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-danger small mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>This action cannot be undone!</strong> All modules, activities, tasks and logbooks will be permanently deleted.
+                    </div>
+
+                    <p class="text-muted mb-3">To confirm deletion, type the following text exactly:</p>
+                    
+                    <div class="alert alert-light border mb-3 py-2 px-3">
+                        <code id="confirmationText" class="fw-bold text-danger"></code>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Confirmation Text</label>
+                        <input type="text" id="deleteConfirmInput" class="form-control" placeholder="Type the confirmation text...">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" id="btnConfirmDelete" class="btn btn-danger fw-bold" disabled>
+                            Delete Project Permanently
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    @vite(['resources/js/Projek/edit-projek.js']) 
 </body>
 </html>

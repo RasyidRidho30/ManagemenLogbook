@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Views;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Imports\JobsImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Http\Request;
+use Exception;
 
 class ProjekViewController extends Controller
 {
@@ -110,25 +114,30 @@ class ProjekViewController extends Controller
 
     public function logbook($id)
     {
+        // 1. Ambil Detail Projek
         $projek = DB::select('CALL sp_read_projek(?, NULL, NULL)', [$id]);
-
-        $daftarTugas = DB::table('tugas')
-            ->join('kegiatan', 'tugas.kgt_id', '=', 'kegiatan.kgt_id')
-            ->join('modul', 'kegiatan.mdl_id', '=', 'modul.mdl_id')
-            ->where('modul.pjk_id', $id)
-            ->select('tugas.tgs_id', 'tugas.tgs_nama', 'tugas.tgs_kode_prefix')
-            ->get();
 
         if (empty($projek)) {
             abort(404, 'Projek tidak ditemukan');
         }
         $projek = $projek[0];
 
+        // 2. Ambil Daftar Tugas untuk Dropdown (Form Tambah Logbook)
+        // Gunakan Logic JOIN yang benar (Tugas -> Kegiatan -> Modul -> Projek)
+        $daftarTugas = DB::table('tugas')
+            ->join('kegiatan', 'tugas.kgt_id', '=', 'kegiatan.kgt_id')
+            ->join('modul', 'kegiatan.mdl_id', '=', 'modul.mdl_id')
+            ->where('modul.pjk_id', $id)
+            ->select('tugas.tgs_id', 'tugas.tgs_nama', 'tugas.tgs_kode_prefix', 'tugas.tgs_persentasi_progress')
+            ->get();
+
+        // 3. Ambil Logbook List (Untuk Tampilan Awal Tabel)
+        // Logic ini HARUS SAMA dengan API agar data yang tampil konsisten
         $logbooks = DB::table('logbook')
             ->join('tugas', 'logbook.tgs_id', '=', 'tugas.tgs_id')
             ->join('kegiatan', 'tugas.kgt_id', '=', 'kegiatan.kgt_id')
             ->join('modul', 'kegiatan.mdl_id', '=', 'modul.mdl_id')
-            ->join('users', 'tugas.usr_id', '=', 'users.usr_id')
+            ->leftJoin('users', 'tugas.usr_id', '=', 'users.usr_id') // Pakai Left Join untuk PIC
             ->where('modul.pjk_id', $id)
             ->select(
                 'logbook.lbk_id',
@@ -138,23 +147,54 @@ class ProjekViewController extends Controller
                 'logbook.lbk_progress',
                 'tugas.tgs_nama',
                 'tugas.tgs_kode_prefix',
-                'tugas.tgs_status',
                 'tugas.tgs_tanggal_mulai',
                 'tugas.tgs_tanggal_selesai',
-                'users.usr_first_name',
-                'users.usr_last_name',
-                'users.usr_avatar_url',
+                // Ambil PIC Name gabungan
                 DB::raw('CONCAT(users.usr_first_name, " ", users.usr_last_name) as pic_name')
             )
             ->orderBy('logbook.lbk_tanggal', 'desc')
+            // ->orderBy('logbook.lbk_create_at', 'desc') // Uncomment jika ada kolom ini
             ->get();
 
         return view('ProjekPage.Logbook', [
             'projek'     => $projek,
-            'logbooks'   => $logbooks,
+            'logbooks'   => $logbooks, // Data awal tabel
             'activeMenu' => 'logbook',
             'projectId'  => $id,
-            'tugas'      => $daftarTugas
+            'tugas'      => $daftarTugas // Data untuk dropdown modal
         ]);
+    }
+
+    public function importExcel(Request $request, $id)
+    {
+        // 1. Validasi File
+        $request->validate([
+            'file_excel' => 'required|mimes:xlsx,xls,csv|max:5120'
+        ]);
+
+        // 2. Validasi Keamanan
+        $cekModul = DB::table('modul')->where('pjk_id', $id)->count();
+        if ($cekModul > 0) {
+            // UBAH: Kembalikan JSON dengan status 400 (Error)
+            return response()->json([
+                'message' => 'Import ditolak! Projek ini sudah memiliki data.'
+            ], 400);
+        }
+
+        // 3. Eksekusi Import
+        try {
+            Excel::import(new JobsImport($id), $request->file('file_excel'));
+
+            // UBAH: Kembalikan JSON dengan status 200 (Sukses)
+            return response()->json([
+                'message' => 'Data pekerjaan dari Excel berhasil diimport!'
+            ], 200);
+
+        } catch (\Throwable $e) {
+            // UBAH: Tangkap error dari Excel dan kembalikan sebagai JSON
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 }

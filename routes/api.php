@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ModulController;
 use App\Http\Controllers\Api\KegiatanController;
 use App\Http\Controllers\Api\TugasController;
 use App\Http\Controllers\Api\LogbookController;
+use App\Http\Controllers\Api\KategoriController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('logbook', [LogbookController::class, 'index']);
     Route::post('logbook', [LogbookController::class, 'store']);
     Route::put('logbook/{id}', [LogbookController::class, 'update']);
+    Route::get('projek/{id}/logbook', [LogbookController::class, 'getByProject']);
+
 
     // --- PROJEK SPECIFIC LOGIC (DASHBOARD) ---
     Route::get('/projek/{id}/stats', [ProjekController::class, 'getDashboardStats']);
@@ -71,6 +74,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projek/{id}/member', [ProjekController::class, 'addMember']);
     Route::put('/projek/{id}/member/{member_id}', [ProjekController::class, 'updateMember']);
     Route::delete('/projek/{id}/member/{member_id}', [ProjekController::class, 'removeMember']);
+
+    Route::get('/kategori', [KategoriController::class, 'index']);
+    Route::post('/kategori', [KategoriController::class, 'store']);
+    Route::get('/kategori/{id}', [KategoriController::class, 'show']);
+    Route::put('/kategori/{id}', [KategoriController::class, 'update']);
+    Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
+    Route::patch('/kategori/{id}/toggle-status', [KategoriController::class, 'toggleStatus']);
 
     // === RUTE BARU UNTUK DROPDOWN USER ===
     Route::get('/users', [ProjekController::class, 'getUsers']);

@@ -81,6 +81,17 @@ class LogbookController extends Controller
         ]);
 
         try {
+            // Check if logbook already exists for this task
+            $existingLogbook = DB::table('logbook')
+                ->where('tgs_id', $request->tgs_id)
+                ->first();
+
+            if ($existingLogbook) {
+                return response()->json([
+                    'message' => 'This task already has a logbook entry. Each task can only have one logbook entry.'
+                ], 422);
+            }
+
             DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?)', [
                 $request->tgs_id,
                 $request->tanggal,
@@ -139,5 +150,94 @@ class LogbookController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
+    }
+
+    #[OA\Get(
+        path: "/api/projek/{id}/logbook",
+        tags: ["Logbook"],
+        summary: "Get logbooks by Project ID",
+        description: "Mengambil daftar logbook khusus untuk projek tertentu",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                description: "ID Projek",
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "List of logbooks",
+                content: new OA\JsonContent(
+                    type: "object",
+                    properties: [
+                        new OA\Property(property: "message", type: "string", example: "Success"),
+                        new OA\Property(
+                            property: "data",
+                            type: "array",
+                            items: new OA\Items(
+                                type: "object",
+                                properties: [
+                                    new OA\Property(property: "lbk_id", type: "integer"),
+                                    new OA\Property(property: "lbk_tanggal", type: "string", format: "date"),
+                                    new OA\Property(property: "lbk_deskripsi", type: "string"),
+                                    new OA\Property(property: "tgs_nama", type: "string"),
+                                    new OA\Property(property: "pic_name", type: "string")
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(response: 404, description: "Project not found")
+        ]
+    )]
+    public function getByProject(Request $request, $id) // Tambahkan Request $request
+    {
+        $query = DB::table('logbook')
+            ->join('tugas', 'logbook.tgs_id', '=', 'tugas.tgs_id')
+            ->join('kegiatan', 'tugas.kgt_id', '=', 'kegiatan.kgt_id')
+            ->join('modul', 'kegiatan.mdl_id', '=', 'modul.mdl_id')
+            ->leftJoin('users', 'tugas.usr_id', '=', 'users.usr_id')
+            ->where('modul.pjk_id', $id)
+            ->select(
+                'logbook.*',
+                'tugas.tgs_nama',
+                'tugas.tgs_kode_prefix',
+                'tugas.tgs_tanggal_mulai',   // Tambahkan ini agar JS tidak error (undefined)
+                'tugas.tgs_tanggal_selesai', // Tambahkan ini agar JS tidak error (undefined)
+                DB::raw("CONCAT(users.usr_first_name, ' ', users.usr_last_name) as pic_name")
+            );
+
+        // --- FILTER LOGIC ---
+
+        // Filter by Task ID
+        if ($request->has('tgs_id') && $request->tgs_id != '') {
+            $query->where('logbook.tgs_id', $request->tgs_id);
+        }
+
+        // Filter by Date
+        if ($request->has('tanggal') && $request->tanggal != '') {
+            $query->whereDate('logbook.lbk_tanggal', $request->tanggal);
+        }
+
+        // Filter by Search (Deskripsi)
+        if ($request->has('search') && $request->search != '') {
+            $query->where('logbook.lbk_deskripsi', 'like', '%' . $request->search . '%');
+        }
+
+        // --- END FILTER LOGIC ---
+
+        $logbooks = $query->orderBy('logbook.lbk_tanggal', 'desc')
+            // ->orderBy('logbook.lbk_create_at', 'desc') // Uncomment jika ada
+            ->get();
+
+        return response()->json([
+            'message' => 'Success',
+            'data' => $logbooks
+        ]);
     }
 }

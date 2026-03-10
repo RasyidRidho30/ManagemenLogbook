@@ -1,15 +1,58 @@
 import axios from "axios";
 
 const apiToken = localStorage.getItem("api_token");
-axios.defaults.headers.common["Authorization"] = `Bearer ${apiToken}`;
+if (apiToken) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${apiToken}`;
+}
 axios.defaults.headers.common["Accept"] = "application/json";
+
+const apiBase = "/api";
 
 document.addEventListener("DOMContentLoaded", function () {
     const urlParts = window.location.pathname.split("/");
-    const projectId = urlParts[2];
+    const projectId = urlParts[2]; // Pastikan urutan URL sesuai (misal: /projek/1/edit)
 
     const tglMulaiInput = document.getElementById("pjk_tgl_mulai");
     const tglSelesaiInput = document.getElementById("pjk_tgl_selesai");
+    const kategoriSelect = document.getElementById("pjk_kategori");
+
+    let currentUserRole = null;
+
+    // Load categories
+    const loadCategories = async () => {
+        try {
+            const { data: response } = await axios.get(`${apiBase}/kategori`);
+            const categories = Array.isArray(response)
+                ? response
+                : response.data || [];
+
+            if (kategoriSelect) {
+                const currentValue = kategoriSelect.value;
+
+                // Keep the default option
+                kategoriSelect.innerHTML =
+                    '<option value="">-- Select Category --</option>';
+
+                // Add categories to select
+                categories.forEach((cat) => {
+                    // Perbaikan: gunakan loose equality agar false / "0" / 0 tetap tertangkap
+                    if (cat.ktg_is_active == 0 || cat.ktg_is_active === false)
+                        return;
+
+                    const option = document.createElement("option");
+                    option.value = cat.id || cat.ktg_id;
+                    option.textContent = cat.nama || cat.ktg_nama;
+                    kategoriSelect.appendChild(option);
+                });
+
+                if (currentValue) kategoriSelect.value = currentValue;
+            }
+        } catch (err) {
+            console.error("Failed to load categories:", err);
+        }
+    };
+
+    loadCategories();
 
     function initializeDateValidation() {
         const today = new Date();
@@ -64,17 +107,76 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("pjk_deskripsi").value = data.deskripsi;
                 document.getElementById("pjk_pic").value = data.pic;
                 document.getElementById("pjk_status").value = data.status;
+                document.getElementById("pjk_kategori").value =
+                    data.kategori_id || "";
                 document.getElementById("pjk_tgl_mulai").value =
                     data.tanggal_mulai;
                 document.getElementById("pjk_tgl_selesai").value =
                     data.tanggal_selesai;
 
                 initializeDateValidation();
+
+                // Set confirmation text untuk delete modal
+                const confirmText = `Delete project ${data.nama}`;
+                document.getElementById("confirmationText").textContent =
+                    confirmText;
+
+                // Load current user's role in this project
+                loadCurrentUserRole();
             })
             .catch(() =>
                 Swal.fire("Error", "Failed to retrieve project data", "error"),
             );
     }
+
+    function loadCurrentUserRole() {
+        axios
+            .get(`/api/projek/${projectId}/member`)
+            .then((res) => {
+                const members = res.data;
+
+                // Get current user ID from localStorage
+                const userData = JSON.parse(
+                    localStorage.getItem("user_data") || "{}",
+                );
+                const currentUserId = userData.usr_id || userData.id;
+
+                const currentMember = members.find(
+                    (m) => m.user.id === currentUserId,
+                );
+                if (currentMember) {
+                    currentUserRole = currentMember.role;
+                }
+
+                // Show/Hide buttons based on role
+                const btnAddTeamMember =
+                    document.getElementById("btnAddTeamMember");
+                const btnHapusProjek =
+                    document.getElementById("btnHapusProjek");
+
+                if (
+                    currentUserRole === "Ketua" ||
+                    currentUserRole === "Admin"
+                ) {
+                    if (btnAddTeamMember)
+                        btnAddTeamMember.style.display = "block";
+                    if (btnHapusProjek) btnHapusProjek.style.display = "block";
+                } else {
+                    if (btnAddTeamMember)
+                        btnAddTeamMember.style.display = "none";
+                    if (btnHapusProjek) btnHapusProjek.style.display = "none";
+                }
+
+                // Load members after getting user role
+                loadMembers();
+            })
+            .catch(() => {
+                console.error("Failed to load user role");
+                loadMembers();
+            });
+    }
+
+    // PERBAIKAN: Fungsi ini harus dipanggil agar datanya muncul saat halaman dibuka
     loadProjectData();
 
     const form = document.getElementById("formEditProjek");
@@ -130,23 +232,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            if (selesaiDate <= today) {
-                Swal.fire(
-                    "Validation Error",
-                    "Tanggal selesai tidak boleh kurang dari atau sama dengan hari ini!",
-                    "warning",
-                );
-                return;
-            }
-
             const payload = {
                 nama: document.getElementById("pjk_nama").value,
+                kategori_id: document.getElementById("pjk_kategori").value,
                 deskripsi: document.getElementById("pjk_deskripsi").value,
                 pic: document.getElementById("pjk_pic").value,
                 status: document.getElementById("pjk_status").value,
                 tgl_mulai: tglMulaiValue,
                 tgl_selesai: tglSelesaiValue,
             };
+
             axios
                 .put(`/api/projek/${projectId}`, payload)
                 .then(() =>
@@ -155,47 +250,114 @@ document.addEventListener("DOMContentLoaded", function () {
                         title: "Success!",
                         timer: 1500,
                         showConfirmButton: false,
+                        toast: true,
+                        position: "top-end",
                     }).then(() => loadProjectData()),
                 )
                 .catch((err) =>
-                    Swal.fire(
-                        "Failed",
-                        err.response?.data?.message || "Error",
-                        "error",
-                    ),
+                    Swal.fire({
+                        icon: "error",
+                        title: "Failed",
+                        text: err.response?.data?.message || "Error",
+                        toast: true,
+                        position: "top-end",
+                        showConfirmButton: false,
+                        timer: 2000,
+                    }),
                 );
         });
     }
 
-    const btnHapus = document.getElementById("btnHapusProjek");
-    if (btnHapus) {
-        btnHapus.addEventListener("click", function () {
-            // ... (Logika hapus projek tetap sama) ...
-            // Agar kode tidak terlalu panjang, saya persingkat bagian ini karena tidak berubah
-            Swal.fire({
-                title: "Delete?",
-                text: "Cannot be undone",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-            }).then((r) => {
-                if (r.isConfirmed)
-                    axios
-                        .delete(`/api/projek/${projectId}`)
-                        .then(() => (window.location.href = "/projek"));
-            });
+    // ========== DELETE PROJECT CONFIRMATION ==========
+    const deleteConfirmInput = document.getElementById("deleteConfirmInput");
+    const btnConfirmDelete = document.getElementById("btnConfirmDelete");
+    const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+
+    // Event listener untuk input teks konfirmasi
+    if (deleteConfirmInput) {
+        deleteConfirmInput.addEventListener("input", function () {
+            const confirmText =
+                document.getElementById("confirmationText").textContent;
+            const inputValue = this.value;
+
+            // Enable button hanya jika text match persis
+            if (inputValue === confirmText) {
+                btnConfirmDelete.disabled = false;
+            } else {
+                btnConfirmDelete.disabled = true;
+            }
+        });
+    }
+
+    // Event listener untuk button confirm delete
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener("click", function () {
+            const confirmText =
+                document.getElementById("confirmationText").textContent;
+            const inputValue = deleteConfirmInput.value;
+
+            // Double-check validation
+            if (inputValue !== confirmText) {
+                Swal.fire(
+                    "Error",
+                    "Confirmation text does not match!",
+                    "error",
+                );
+                return;
+            }
+
+            // Disable button dan ubah text menjadi loading
+            btnConfirmDelete.disabled = true;
+            const originalText = btnConfirmDelete.innerHTML;
+            btnConfirmDelete.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+
+            axios
+                .delete(`/api/projek/${projectId}`)
+                .then(() => {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Project Deleted",
+                        text: "Project has been permanently deleted.",
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: "top-end",
+                    }).then(() => {
+                        window.location.href = "/projek";
+                    });
+                })
+                .catch((err) => {
+                    btnConfirmDelete.disabled = false;
+                    btnConfirmDelete.innerHTML = originalText;
+                    Swal.fire(
+                        "Error",
+                        err.response?.data?.message ||
+                            "Failed to delete project",
+                        "error",
+                    );
+                });
+        });
+    }
+
+    // Reset modal saat dibuka
+    if (deleteConfirmModal) {
+        deleteConfirmModal.addEventListener("show.bs.modal", function () {
+            deleteConfirmInput.value = "";
+            btnConfirmDelete.disabled = true;
+            btnConfirmDelete.innerHTML = "Delete Project Permanently";
         });
     }
 
     // ==========================================================
-    // LOGIKA KELOLA TIM (UPDATED: CLICK TO EDIT)
+    // LOGIKA KELOLA TIM
     // ==========================================================
 
-    // Modal Edit Member Instance
     const modalEditMemberEl = document.getElementById("editMemberModal");
-    const modalEditMember = modalEditMemberEl
-        ? new bootstrap.Modal(modalEditMemberEl)
-        : null;
+    let modalEditMember = null;
+    if (modalEditMemberEl) {
+        modalEditMember = new bootstrap.Modal(modalEditMemberEl);
+    }
 
     function loadMembers() {
         const listContainer = document.getElementById("teamMembersList");
@@ -220,7 +382,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         initials += nameParts[1].charAt(0);
                     initials = initials.toUpperCase();
 
-                    // Tambahkan class 'cursor-pointer' dan event onclick
+                    // Only show remove button if user is Ketua
+                    const removeButton =
+                        currentUserRole === "Ketua" ||
+                        currentUserRole === "Admin"
+                            ? `<button class="btn btn-sm btn-link text-danger btn-remove-member" 
+                                    data-id="${m.id}" 
+                                    title="Remove Member"
+                                    onclick="event.stopPropagation(); removeMember(${m.id})">
+                                <i class="bi bi-x-circle-fill fs-5"></i>
+                            </button>`
+                            : "";
+
                     html += `
                         <div class="list-group-item member-item d-flex justify-content-between align-items-center py-3 px-3" 
                              style="cursor: pointer;"
@@ -234,12 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                             
-                            <button class="btn btn-sm btn-link text-danger btn-remove-member" 
-                                    data-id="${m.id}" 
-                                    title="Remove Member"
-                                    onclick="event.stopPropagation(); removeMember(${m.id})">
-                                <i class="bi bi-x-circle-fill fs-5"></i>
-                            </button>
+                            ${removeButton}
                         </div>
                     `;
                 });
@@ -251,9 +419,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    loadMembers();
-
-    // Fungsi Global untuk Membuka Modal Edit
     window.openEditMemberModal = function (id, name, role) {
         document.getElementById("editMemberId").value = id;
         document.getElementById("editMemberName").value = name;
@@ -262,7 +427,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (modalEditMember) modalEditMember.show();
     };
 
-    // Fungsi Global Remove Member (Dipanggil langsung dari HTML string di atas)
     window.removeMember = function (memberId) {
         Swal.fire({
             title: "Remove Member?",
@@ -276,21 +440,31 @@ document.addEventListener("DOMContentLoaded", function () {
                 axios
                     .delete(`/api/projek/${projectId}/member/${memberId}`)
                     .then(() => {
-                        const Toast = Swal.mixin({
+                        Swal.fire({
+                            icon: "success",
+                            title: "Member removed",
                             toast: true,
                             position: "top-end",
                             showConfirmButton: false,
                             timer: 2000,
                         });
-                        Toast.fire({
-                            icon: "success",
-                            title: "Member removed",
-                        });
                         loadMembers();
                     })
-                    .catch(() =>
-                        Swal.fire("Error", "Failed to remove member", "error"),
-                    );
+                    .catch((err) => {
+                        const errorMessage =
+                            err.response?.data?.message ||
+                            "Failed to remove member";
+                        const errorIcon =
+                            err.response?.status === 422 ? "warning" : "error";
+                        Swal.fire({
+                            title:
+                                errorIcon === "warning"
+                                    ? "Cannot Remove Member"
+                                    : "Error",
+                            text: errorMessage,
+                            icon: errorIcon,
+                        });
+                    });
             }
         });
     };
@@ -308,12 +482,14 @@ document.addEventListener("DOMContentLoaded", function () {
                     role: newRole,
                 })
                 .then(() => {
-                    modalEditMember.hide();
+                    if (modalEditMember) modalEditMember.hide();
                     Swal.fire({
                         icon: "success",
                         title: "Role Updated",
                         showConfirmButton: false,
-                        timer: 1000,
+                        timer: 1500,
+                        toast: true,
+                        position: "top-end",
                     });
                     loadMembers();
                 })
@@ -327,21 +503,30 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // ==========================================================
-    // LOGIKA MODAL ADD MEMBER (TETAP SAMA)
-    // ==========================================================
-    // ... (Kode untuk Add Member Modal, Search, dll tidak berubah dari sebelumnya) ...
-    // Sertakan kode Add Member di sini agar file tetap utuh.
-
     let availableUsers = [];
     let selectedUserId = null;
 
-    const modalAddMember = document.getElementById("addMemberModal");
+    const modalAddMemberEl = document.getElementById("addMemberModal");
+    const modalAddMember = modalAddMemberEl
+        ? new bootstrap.Modal(modalAddMemberEl)
+        : null;
+
     const userListContainer = document.getElementById("userSelectionList");
     const searchInput = document.getElementById("searchUser");
     const inputRole = document.getElementById("inputRole");
     const btnSubmitMember = document.getElementById("btnSubmitAddMember");
     const btnSearchTrigger = document.getElementById("btnSearchTrigger");
+    const btnAddTeamMember = document.getElementById("btnAddTeamMember");
+
+    // Handle Add Team Member button click
+    if (btnAddTeamMember) {
+        btnAddTeamMember.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (modalAddMember) {
+                modalAddMember.show();
+            }
+        });
+    }
 
     window.selectUserItem = function (id) {
         selectedUserId = id;
@@ -365,6 +550,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let initials = nameParts[0].charAt(0);
             if (nameParts.length > 1) initials += nameParts[1].charAt(0);
             initials = initials.toUpperCase();
+
             const isSelected = u.id == selectedUserId ? "selected" : "";
             const btnClass =
                 u.id == selectedUserId ? "btn-success" : "btn-select-user";
@@ -374,6 +560,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     : "+ Add Member";
             const pointerEvents =
                 u.id == selectedUserId ? "pointer-events: none;" : "";
+
             html += `
                 <div class="user-select-item ${isSelected}" onclick="selectUserItem(${u.id})">
                     <div class="d-flex align-items-center">
@@ -393,9 +580,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function checkSubmitButton() {
-        if (selectedUserId && inputRole.value.trim() !== "")
+        if (selectedUserId && inputRole.value.trim() !== "") {
             btnSubmitMember.disabled = false;
-        else btnSubmitMember.disabled = true;
+        } else {
+            btnSubmitMember.disabled = true;
+        }
     }
 
     function executeSearch() {
@@ -406,13 +595,16 @@ document.addEventListener("DOMContentLoaded", function () {
         renderUserList(filteredUsers);
     }
 
-    if (modalAddMember) {
-        modalAddMember.addEventListener("show.bs.modal", function () {
+    if (modalAddMemberEl) {
+        modalAddMemberEl.addEventListener("show.bs.modal", function () {
             selectedUserId = null;
             inputRole.value = "";
             searchInput.value = "";
             btnSubmitMember.disabled = true;
+            document.getElementById("btnSubmitText").style.display = "inline";
+            document.getElementById("btnSubmitLoader").style.display = "none";
             userListContainer.innerHTML = `<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><div>Loading users...</div></div>`;
+
             axios
                 .get(`/api/users?role=User&exclude_project=${projectId}`)
                 .then((res) => {
@@ -427,6 +619,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (btnSearchTrigger)
             btnSearchTrigger.addEventListener("click", executeSearch);
+
         if (searchInput) {
             searchInput.addEventListener("keypress", function (e) {
                 if (e.key === "Enter") {
@@ -438,28 +631,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (this.value === "") renderUserList(availableUsers);
             });
         }
+
         inputRole.addEventListener("input", checkSubmitButton);
+
         btnSubmitMember.addEventListener("click", function () {
             const role = inputRole.value;
             if (!selectedUserId || !role) return;
+
             const payload = {
                 user_id: selectedUserId,
                 role: role,
                 pjk_id: projectId,
             };
-            const originalText = btnSubmitMember.innerHTML;
-            btnSubmitMember.innerHTML =
-                '<span class="spinner-border spinner-border-sm"></span> Adding...';
+
+            document.getElementById("btnSubmitText").style.display = "none";
+            document.getElementById("btnSubmitLoader").style.display =
+                "inline-block";
             btnSubmitMember.disabled = true;
+
             axios
                 .post(`/api/projek/${projectId}/member`, payload)
                 .then(() => {
-                    bootstrap.Modal.getInstance(modalAddMember).hide();
+                    if (modalAddMember) modalAddMember.hide();
                     Swal.fire({
                         icon: "success",
                         title: "Member Added",
                         showConfirmButton: false,
-                        timer: 1000,
+                        timer: 1500,
+                        toast: true,
+                        position: "top-end",
                     });
                     loadMembers();
                 })
@@ -469,7 +669,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         err.response?.data?.message || "Failed",
                         "error",
                     );
-                    btnSubmitMember.innerHTML = originalText;
+                    document.getElementById("btnSubmitText").style.display =
+                        "inline";
+                    document.getElementById("btnSubmitLoader").style.display =
+                        "none";
                     btnSubmitMember.disabled = false;
                 });
         });

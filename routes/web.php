@@ -16,6 +16,8 @@ Route::get('/profile/edit', function () {
 Route::view('/projek', 'ProjekPage.Read');
 Route::view('/projek/add', 'ProjekPage.Add');
 
+Route::view('/kategori', 'KategoriPage.Read');
+
 Route::post('/projek/render-cards', [ProjekCardController::class, 'renderCards']);
 
 
@@ -29,4 +31,6 @@ Route::prefix('projek/{id}')->group(function () {
     Route::get('/edit', [ProjekViewController::class, 'edit'])->name('projek.edit');
 
     Route::get('/logbook', [ProjekViewController::class, 'logbook'])->name('projek.logbook');
+
+    Route::post('/jobs/import', [ProjekViewController::class, 'importExcel'])->name('jobs.import');
 });

@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('projek', function (Blueprint $table) {
             $table->id('pjk_id');
 
+            // 1. Tambahkan kolom ktg_id (dibuat nullable agar opsional)
+            $table->unsignedBigInteger('ktg_id')->nullable();
+
             $table->string('pjk_nama', 100);
             $table->string('pjk_pic')->nullable();
             $table->text('pjk_deskripsi')->nullable();
@@ -27,6 +30,13 @@ return new class extends Migration
             $table->string('pjk_create_by')->nullable();
             $table->dateTime('pjk_modified_at')->nullable();
             $table->string('pjk_modified_by')->nullable();
+
+            // 2. Definisikan Foreign Key Constraint
+            $table->foreign('ktg_id')
+                ->references('ktg_id')
+                ->on('kategori')
+                ->onDelete('set null') // Jika data kategori dihapus, id di tabel projek akan menjadi null (tidak ikut terhapus)
+                ->onUpdate('cascade');
         });
     }
 

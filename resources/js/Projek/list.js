@@ -25,10 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
         minDate = new Date(projectStartStr + "T00:00:00");
         maxDate = new Date(projectEndStr + "T00:00:00");
 
-        // Opsional: Tambahkan 1-2 hari di akhir agar batas kanan tidak terlalu mepet
         maxDate.setDate(maxDate.getDate() + 2);
     } else {
-        // Fallback: Jika tanggal projek kosong, hitung dari tugas
         const dates = Array.from(rows)
             .map((r) => ({
                 start: parseDate(r.dataset.start),
@@ -194,6 +192,9 @@ document.addEventListener("DOMContentLoaded", () => {
         scrollContainer.style.cursor = "grabbing";
         startX = e.pageX - scrollContainer.offsetLeft;
         scrollLeft = scrollContainer.scrollLeft;
+
+        // TAMBAHKAN INI: Sembunyikan semua tooltip yang sedang terbuka saat user mulai mendrag layar
+        document.querySelectorAll(".tooltip").forEach((t) => t.remove());
     });
 
     scrollContainer.addEventListener("mouseleave", () => {

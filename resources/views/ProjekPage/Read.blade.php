@@ -18,13 +18,30 @@
         ])
 </head>
 <body>
+    <script>
+        const token = localStorage.getItem('api_token');
+        const userData = localStorage.getItem('user_data');
+        
+        if (!token || !userData) {
+            window.location.href = '/login';
+        }
+    </script>
+
+    <script>
+        let currentUser = {};
+        try {
+            currentUser = JSON.parse(localStorage.getItem('user_data')) || {};
+        } catch (e) {
+            console.error('Failed to parse user data:', e);
+        }
+    </script>
 
     @include('components.NavbarSearchFilter', [
         'logo' => 'Logo',
         'title' => 'Project Management',
-        'userName' => auth()->check() ? auth()->user()->name : null,
-        'userRole' => auth()->check() ? auth()->user()->role : null,
-        'userAvatar' => auth()->check() ? auth()->user()->avatar : null,
+        'userName' => 'User',
+        'userRole' => 'User',
+        'userAvatar' => null,
         'searchPlaceholder' => 'Search Project...',
         'showNotificationBadge' => true,
         'notificationCount' => 3
@@ -34,6 +51,11 @@
         <div class="d-flex align-items-center justify-content-between mb-4">
             <h1 class="h4 mb-0">Project List</h1>
             <div class="d-flex gap-2">
+                
+                <a id="kategoriBtn" href="/kategori" class="btn btn-outline-secondary btn-sm d-flex align-items-center" style="display:none;">
+                    <i class="bi bi-tags me-1"></i> Manage Categories
+                </a>
+                
                 <button type="button" class="btn btn-primary btn-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addProjekModal">
                     <i class="bi bi-plus-lg me-1"></i> Add Project
                 </button>
@@ -64,6 +86,12 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Project Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control bg-light" id="nama" required placeholder="Project Name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Category <span class="text-danger">*</span></label>
+                            <select class="form-control bg-light" id="kategori" required>
+                                <option value="">-- Select Category --</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Project PIC <span class="text-danger">*</span></label>

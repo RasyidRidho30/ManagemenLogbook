@@ -155,6 +155,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        <small class="text-muted d-block mt-1">
+                            <i class="bi bi-info-circle me-1"></i>Tasks already logged will be disabled and marked as [ALREADY LOGGED]
+                        </small>
                     </div>
 
                     <div class="mb-3">

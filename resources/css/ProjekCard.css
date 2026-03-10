@@ -1,80 +1,202 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 .project-card {
-    border-radius: 1.25rem;
-    transition: all 0.2s ease;
+    border-radius: 1.5rem;
     position: relative;
     overflow: hidden;
-    background: #fff;
+    background: #ffffff;
+    border: 1.5px solid rgba(20, 55, 82, 0.09) !important;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    box-shadow: 0 2px 8px rgba(20, 55, 82, 0.05);
+    
+    /* [PERBAIKAN 1] Transisi yang valid dan sangat smooth menggunakan cubic-bezier */
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1),
+                box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-/* Hover lift */
+/* [PERBAIKAN 2] Hanya gunakan 1 pseudo-element untuk garis kiri */
+.project-card::before {
+    content: "";
+    position: absolute;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    left: 0;
+    width: 4px; /* Lebar awal saat idle */
+    background: linear-gradient(180deg, #143752, #2aace2);
+    border-radius: 0 4px 4px 0;
+    
+    /* Transisi khusus untuk perubahan lebar garis */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Saat di-hover, cukup ubah lebarnya saja (tidak perlu main opacity) */
+.project-card:hover::before {
+    width: 9px;
+}
+
+/* Efek angkat (float) pada kartu saat di-hover */
 .project-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow:
+        0 4px 12px rgba(20, 55, 82, 0.08),
+        0 16px 40px rgba(20, 55, 82, 0.13);
 }
 
-
-/* Header title */
-.project-card h5 {
-    letter-spacing: 0.5px;
-    font-weight: 700;
+/* Title */
+.project-card .nama {
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.7px;
     color: #143752;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    margin-bottom: 0.2rem;
 }
 
-/* Progress bar smooth + glow */
+/* Date */
+.project-card .date-range {
+    font-size: 0.73rem;
+    color: #7f96a8;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+}
+
+/* Progress number */
+.project-card .progress-num {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1.5px;
+    font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+/* Progress bar track */
 .project-card .progress {
     overflow: hidden;
-    background-color: #e9ecef;
+    background-color: #edf2f6;
+    border-radius: 100px;
 }
 
-/* Angka progress */
-.project-card .fw-bold {
-    /* letter-spacing: 0.2px; */
+.project-card .progress-bar {
+    border-radius: 100px;
+    transition: width 0.9s cubic-bezier(0.22, 0.68, 0, 1.2);
+}
+
+/* Color gradients — brand-aware */
+.project-card .progress-bar.bg-danger {
+    background: linear-gradient(90deg, #ff6b6b, #e84118) !important;
+}
+.project-card .progress-bar.bg-warning {
+    background: linear-gradient(90deg, #ffd32a, #e1b12c) !important;
+}
+.project-card .progress-bar.bg-success {
+    background: linear-gradient(90deg, #00d2d3, #05c46b) !important;
+}
+
+/* Tasks label */
+.project-card .tasks-label {
+    font-size: 0.72rem;
+    color: #7f96a8;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Divider */
+.project-card hr {
+    margin: 1rem 0;
+    border: none;
+    border-top: 1.5px solid rgba(20, 55, 82, 0.07);
+}
+
+/* Meta rows */
+.project-card .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.79rem;
+    color: #2c4a5e;
+    font-weight: 500;
+}
+
+.project-card .meta-icon-pill {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+    transition: transform 0.2s ease;
+}
+
+.project-card:hover .meta-icon-pill {
+    transform: scale(1.1);
+}
+
+/* Icon backgrounds — all derived from #143752 */
+.icon-user {
+    background: rgba(20, 55, 82, 0.1);
+    color: #143752;
+}
+.icon-pic {
+    background: rgba(20, 55, 82, 0.18);
+    color: #1e6fa5;
+}
+.icon-leader {
+    background: rgba(42, 172, 226, 0.15);
+    color: #1a9abf;
+}
+
+.project-card .meta-key {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #a0b4c2;
     line-height: 1;
 }
 
-/* HR lebih clean */
-.project-card hr {
-    margin: 1.25rem 0;
-    opacity: 0.12;
-}
-
-.nama {
-    font-size: 1.2rem;
+.project-card .meta-val {
+    font-size: 0.78rem;
+    color: #1e3a4f;
     font-weight: 600;
-    color: #343a40;
+    line-height: 1.2;
 }
 
-/* Footer info */
-.project-card .text-sm {
-    font-size: 0.8rem;
+/* Check icon animation */
+.project-card .bi-check2-circle {
+    font-size: 1.6rem;
+    animation: pop 0.45s cubic-bezier(0.4, 1.4, 0.6, 1);
 }
 
-
-/* Checklist badge lebih premium */
-.project-card span.border-success {
-    background-color: rgba(25, 135, 84, 0.08);
+@keyframes pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-/* Animasi checklist */
-.project-card .bi-check-lg {
-    animation: pop 0.45s cubic-bezier(.4,1.4,.6,1);
-}
-
-/* Hover detail text */
+/* Hover hint */
 .hover-detail-text {
     text-align: center;
-    font-size: 0.85rem;
-    color: #6c757d;
-    margin-top: 0.75rem;
-
+    font-size: 0.7rem;
+    color: #a0b4c2;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 0.8rem;
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(5px);
     transition: all 0.3s ease;
 }
 
-/* Muncul saat hover card */
 .project-card:hover .hover-detail-text {
     opacity: 1;
     transform: translateY(0);
 }
-

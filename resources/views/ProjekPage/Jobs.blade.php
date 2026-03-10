@@ -22,12 +22,39 @@
     <x-Sidebar :projectId="$projectId" activeMenu="jobs" />
 
     <main class="main-content">
+        {{-- PENTING: Hidden input untuk dibaca oleh file jobs.js (Validasi Tanggal) --}}
+        <input type="hidden" id="pjk_start_date" value="{{ $projek->pjk_tanggal_mulai }}">
+        <input type="hidden" id="pjk_end_date" value="{{ $projek->pjk_tanggal_selesai }}">
+
+        {{-- Flash Messages --}}
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {!! session('error') !!}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="d-flex justify-content-between align-items-center mb-3">
-            @if(count($moduls) > 0)
-            <button class="btn-add-modul shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddModul">
-                <i class="bi bi-plus-lg"></i> Add Module
-            </button>
-            @endif
+            <div>
+                @if(count($moduls) > 0)
+                <button class="btn-add-modul shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalAddModul">
+                    <i class="bi bi-plus-lg"></i> Add Module
+                </button>
+                @endif
+                
+                {{-- Tombol Import Excel (Hanya Muncul Jika Modul Kosong) --}}
+                @if(count($moduls) === 0)
+                    <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                        <i class="bi bi-file-earmark-excel"></i> Import from Excel
+                    </button>
+                @endif
+            </div>
 
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
@@ -45,10 +72,15 @@
                         <i class="bi bi-folder-plus text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
                     </div>
                     <h4 class="fw-bold text-dark">No Modules Yet</h4>
-                    <p class="text-muted mb-4">This project does not have a module structure yet. Please add your first module to start managing tasks.</p>
-                    <button class="btn btn-primary px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalAddModul">
-                        <i class="bi bi-plus-lg me-2"></i> Add Module Now
-                    </button>
+                    <p class="text-muted mb-4">This project does not have a module structure yet. Please add your first module or import from Excel to start managing tasks.</p>
+                    <div>
+                        <button class="btn btn-primary px-4 py-2 shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalAddModul">
+                            <i class="bi bi-plus-lg me-2"></i> Add Module Now
+                        </button>
+                        <button class="btn btn-success px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                            <i class="bi bi-file-earmark-excel me-2"></i> Import Excel
+                        </button>
+                    </div>
                 </div>
             </div>
         @else
@@ -96,7 +128,7 @@
                                             <td class="text-center">{{ $tgs->tgs_bobot }}</td>
                                             <td class="text-center">
                                                 <span class="{{ $tgs->tgs_status == 'Selesai' ? 'badge bg-success' : 'badge bg-secondary' }}">
-                                                    {{ number_format($tgs->tgs_persentasi_progress, 0) }}% {{ $tgs->tgs_status }}
+                                                    {{ number_format($tgs->tgs_persentase_progress ?? $tgs->tgs_persentasi_progress, 0) }}% {{ $tgs->tgs_status }}
                                                 </span>
                                             </td>
                                             <td class="text-muted small">{{ $tgs->tgs_kode_prefix }}</td>
@@ -185,6 +217,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="kgt_id" id="input_kgt_id">
+                    <div id="alertAddTugas" class="mb-3"></div>
                     <div class="row">
                         <div class="col-md-12 mb-3"> 
                             <label class="form-label">Task Name</label>
@@ -192,11 +225,13 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Start Date</label>
-                            <input type="date" name="tgl_mulai" class="form-control" required>
+                            <input type="date" name="tgl_mulai" id="add_tgl_mulai" class="form-control" required>
+                            <small class="text-muted d-block mt-1">Must be within project timeline</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">End Date</label>
-                            <input type="date" name="tgl_selesai" class="form-control" required>
+                            <input type="date" name="tgl_selesai" id="add_tgl_selesai" class="form-control" required>
+                            <small class="text-muted d-block mt-1">Must be after start date</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Weight</label>
@@ -226,6 +261,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div id="alertEditTugas" class="mb-3"></div>
                     <input type="hidden" id="edit_tgs_id">
                     <div class="row">
                         <div class="col-md-8 mb-3">
@@ -251,6 +287,7 @@
                         <div class="col-md-2 mb-3">
                             <label class="form-label fw-bold">End Date</label>
                             <input type="date" id="edit_tgl_selesai" class="form-control" required>
+                            <small class="text-muted d-block mt-1">Must be within project timeline</small>
                         </div>
                     </div>
                 </div>
@@ -322,6 +359,34 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- IMPORT EXCEL MODAL --}}
+    <div class="modal fade" id="modalImportExcel" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="{{ route('jobs.import', $projectId) }}" method="POST" enctype="multipart/form-data" class="modal-content">
+                @csrf
+                <div class="modal-header card-header-dark">
+                    <h5 class="modal-title">Import Jobs dari Excel</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle"></i> Pastikan format kolom sesuai dengan template sistem. 
+                        <a href="{{ asset('templates/LogbookImport1.xlsx') }}" download>Download Template Excel</a>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Pilih File Excel (.xlsx)</label>
+                        <input type="file" name="file_excel" class="form-control" accept=".xlsx, .xls, .csv" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Mulai Import</button>
                 </div>
             </form>
         </div>

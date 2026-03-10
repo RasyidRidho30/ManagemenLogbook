@@ -13,6 +13,7 @@ class ProjekResource extends JsonResource
             'nama' => $this->pjk_nama ?? null,
             'pic' => $this->pjk_pic ?? null,
             'deskripsi' => $this->pjk_deskripsi ?? null,
+            'kategori_id' => $this->ktg_id ?? null,
             'tanggal_mulai' => $this->pjk_tanggal_mulai ?? null,
             'tanggal_selesai' => $this->pjk_tanggal_selesai ?? null,
             'status' => $this->pjk_status ?? null,

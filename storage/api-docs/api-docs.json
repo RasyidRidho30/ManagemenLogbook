@@ -81,6 +81,225 @@
                 ]
             }
         },
+        "/api/kategori": {
+            "get": {
+                "tags": [
+                    "Kategori"
+                ],
+                "summary": "Mengambil semua data kategori",
+                "description": "Bisa ditambahkan query ?active_only=true untuk dropdown form",
+                "operationId": "7859f77a79e6eba83303683052eaaa59",
+                "parameters": [
+                    {
+                        "name": "active_only",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data kategori"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Kategori"
+                ],
+                "summary": "Membuat kategori baru",
+                "operationId": "cfc2bf78680407adc9f8ad42c00a3758",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama"
+                                ],
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "IT & Software"
+                                    },
+                                    "deskripsi": {
+                                        "type": "string",
+                                        "example": "Kategori untuk projek software"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Kategori berhasil dibuat"
+                    },
+                    "500": {
+                        "description": "Gagal menyimpan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/kategori/{id}": {
+            "get": {
+                "tags": [
+                    "Kategori"
+                ],
+                "summary": "Ambil detail satu kategori",
+                "operationId": "a38bd9cadc96c79c5fe4bd2aeb29f88e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data"
+                    },
+                    "404": {
+                        "description": "Data tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Kategori"
+                ],
+                "summary": "Update kategori yang sudah ada",
+                "operationId": "41243e4f5f696e9cdb2bef6f30a6e93a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nama"
+                                ],
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "example": "IT Development Updated"
+                                    },
+                                    "deskripsi": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Berhasil diperbarui"
+                    },
+                    "404": {
+                        "description": "Tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Kategori"
+                ],
+                "summary": "Hapus kategori",
+                "operationId": "cd3ac58af134945ce299ac0885c3352d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kategori berhasil dihapus"
+                    },
+                    "404": {
+                        "description": "Kategori tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/kategori/{id}/toggle-status": {
+            "patch": {
+                "tags": [
+                    "Kategori"
+                ],
+                "summary": "Aktifkan / Nonaktifkan Kategori",
+                "operationId": "c47e2991b625bece0f6bce8bfe10926c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status berhasil diubah"
+                    },
+                    "404": {
+                        "description": "Kategori tidak ditemukan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/kegiatan": {
             "get": {
                 "tags": [
@@ -375,6 +594,77 @@
                 "responses": {
                     "200": {
                         "description": "Logbook entry updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projek/{id}/logbook": {
+            "get": {
+                "tags": [
+                    "Logbook"
+                ],
+                "summary": "Get logbooks by Project ID",
+                "description": "Mengambil daftar logbook khusus untuk projek tertentu",
+                "operationId": "5a7cc1e14deb9faf7575b451e4f02802",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Projek",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of logbooks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Success"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "lbk_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "lbk_tanggal": {
+                                                        "type": "string",
+                                                        "format": "date"
+                                                    },
+                                                    "lbk_deskripsi": {
+                                                        "type": "string"
+                                                    },
+                                                    "tgs_nama": {
+                                                        "type": "string"
+                                                    },
+                                                    "pic_name": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found"
                     }
                 },
                 "security": [
@@ -1333,6 +1623,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Kategori",
+            "description": "API Endpoints untuk mengelola Kategori Projek"
+        },
         {
             "name": "Authentication",
             "description": "Authentication"

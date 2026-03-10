@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('tgs_id');
 
             $table->foreignId('kgt_id')->constrained('kegiatan', 'kgt_id')->onDelete('cascade');
-            $table->foreignId('usr_id')->constrained('users', 'usr_id')->onDelete('cascade'); // PIC
+            $table->foreignId('usr_id')->nullable()->constrained('users', 'usr_id')->onDelete('cascade'); // PIC
 
             $table->string('tgs_kode_prefix', 20)->nullable();
             $table->string('tgs_nama', 200)->nullable();

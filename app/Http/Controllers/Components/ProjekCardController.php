@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Components;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 class ProjekCardController extends Controller
@@ -22,6 +23,15 @@ class ProjekCardController extends Controller
         $html = '';
 
         foreach ($projects as $project) {
+            // Get kategori name
+            $kategoriName = '-';
+            if (!empty($project['kategori_id'])) {
+                $kategori = DB::table('kategori')
+                    ->where('ktg_id', $project['kategori_id'])
+                    ->first();
+                $kategoriName = $kategori ? $kategori->ktg_nama : '-';
+            }
+
             $cardHtml = View::make('components.ProjekCard', [
                 'id' => $project['id'] ?? null,
                 'nama' => $project['nama'] ?? 'Tanpa Nama',
@@ -32,6 +42,7 @@ class ProjekCardController extends Controller
                 'user' => $project['creator_name'] ?? '-',
                 'pic' => $project['pic'] ?? '-',
                 'leader' => $project['leader_name'] ?? '-',
+                'kategori' => $kategoriName,
                 'tasksDone' => $project['completed_tasks'] ?? 0,
                 'tasksTotal' => $project['total_tasks'] ?? 0,
             ])->render();

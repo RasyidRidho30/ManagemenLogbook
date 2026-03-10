@@ -7,6 +7,50 @@
     @vite(['resources/css/app.css', 'resources/css/NavbarSearchFilter.css', 'resources/css/Sidebar.css', 'resources/css/List.css', 'resources/js/Projek/list.js'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    /* 1. Mengamankan klik kursor menembus bar biru */
+    .progress-fill, 
+    .progress-text {
+        pointer-events: none !important;
+    }
+
+    /* 2. Pengaturan Dasar Tooltip & Anti-Flicker */
+    .tooltip {
+        z-index: 99999999 !important;
+        pointer-events: none !important;
+        transition: opacity 0.15s linear !important;
+    }
+
+    /* 3. EFEK ANIMASI ZOOM/POP (Saat Masuk) */
+    .tooltip.fade .tooltip-inner {
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+
+    .tooltip.show .tooltip-inner {
+        transform: scale(1) !important;
+    }
+
+    .tooltip.show {
+        opacity: 0.9 !important;
+        visibility: visible !important;
+    }
+
+    .tooltip-inner {
+        max-width: 250px !important;
+        padding: 0.4rem 0.8rem !important;
+        color: #fff !important;
+        text-align: center !important;
+        background-color: #000 !important;
+        border-radius: 0.375rem !important;
+        font-size: 0.85rem !important;
+        /* box-shadow: 0px 4px 10px rgba(0,0,0,0.2) !important; */
+    }
+
+    .bs-tooltip-top .tooltip-arrow::before,
+    .bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+        border-top-color: #000 !important;
+    }
+</style>
 </head>
 <body>
 
@@ -33,7 +77,6 @@
         </nav> 
     </div>
     
-
     <div class="activity-container shadow-sm border rounded-3 bg-white">
         <div class="activity-wrap">
             
@@ -106,6 +149,7 @@
                                                      data-bs-toggle="tooltip"
                                                      data-bs-placement="top"
                                                      data-bs-html="true"
+                                                     data-bs-container="body"
                                                      title="<b>{{ $t->tgs_nama }}</b><br>
                                                             {{ \Carbon\Carbon::parse($t->tgs_tanggal_mulai)->format('d M Y') }} - 
                                                             {{ \Carbon\Carbon::parse($t->tgs_tanggal_selesai)->format('d M Y') }}">
@@ -130,5 +174,19 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            var tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(function(tooltipTriggerEl) {
+                new bootstrap.Tooltip(tooltipTriggerEl, {
+                    container: 'body',
+                    offset: [0, 8],
+                });
+            });
+            console.log("SUKSES: " + tooltipTriggerList.length + " Tooltip berhasil dipasang tanpa kedip!");
+        }, 500); 
+    });
+</script>
 </body>
 </html>

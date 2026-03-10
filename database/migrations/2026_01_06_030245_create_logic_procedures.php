@@ -107,7 +107,7 @@ return new class extends Migration
                 LEFT JOIN kegiatan k ON m.mdl_id = k.mdl_id
                 LEFT JOIN tugas t ON k.kgt_id = t.kgt_id
                 WHERE p.pjk_id = id_projek
-                GROUP BY p.pjk_id;
+                GROUP BY p.pjk_id, p.pjk_nama, p.pjk_pic, p.pjk_tanggal_mulai, p.pjk_tanggal_selesai, p.pjk_persentasi_progress;
             END
         ');
 

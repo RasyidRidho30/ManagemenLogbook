@@ -78,9 +78,20 @@
                 </button>
                 
                 <div id="filterDropdown" class="custom-dropdown-menu d-none">
-                    <div class="dropdown-item active" data-value="">All Projct</div>
+                    <div class="dropdown-item active" data-value="">All Project</div>
                     <div class="dropdown-item" data-value="InProgress">In Progress</div>
                     <div class="dropdown-item" data-value="Completed">Completed</div>
+                </div>
+            </div>
+
+            <div class="dropdown-wrapper">
+                <button class="btn-filter" id="kategoriFilterBtn">
+                    <i class="bi bi-tags"></i>
+                    <span id="kategoriFilterBtnText">All Categories</span> 
+                </button>
+                
+                <div id="kategoriFilterDropdown" class="custom-dropdown-menu d-none">
+                    <div class="dropdown-item active" data-value="">All Categories</div>
                 </div>
             </div>
 

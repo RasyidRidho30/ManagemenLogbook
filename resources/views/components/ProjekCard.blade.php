@@ -8,6 +8,7 @@
     'user' => '-',
     'pic' => '-',
     'leader' => '-',
+    'kategori' => '-',
     'tasksDone' => 0,
     'tasksTotal' => 0
 ])
@@ -20,7 +21,7 @@
         return \Carbon\Carbon::parse($dateStr)->locale('id')->isoFormat('D MMM YYYY');
     };
 
-    $dateRange = $formatDate($tanggalMulai) . ' - ' . $formatDate($tanggalSelesai);
+    $dateRange = $formatDate($tanggalMulai) . ' – ' . $formatDate($tanggalSelesai);
 
     $progressValue = floatval($progress);
 
@@ -41,12 +42,12 @@
     }
 @endphp
 
-<div class="card h-100 shadow-sm border project-card"
+<div class="card h-100 project-card"
      data-project-id="{{ $id }}"
      onclick="showProjectDetail({{ $id }})"
      style="cursor:pointer">
 
-    <div class="card-body d-flex flex-column justify-content-between">
+    <div class="card-body d-flex flex-column justify-content-between" style="padding: 1.6rem 1.5rem 1.4rem 1.75rem;">
 
         <div>
             {{-- Header --}}
@@ -54,27 +55,30 @@
                 <h5 class="nama text-uppercase text-truncate" title="{{ $nama }}">
                     {{ $nama }}
                 </h5>
-                <small class="text-muted fw-medium">{{ $dateRange }}</small>
+                <span class="date-range">
+                    <i class="bi bi-calendar3 me-1" style="font-size:0.65rem; opacity:0.7;"></i>{{ $dateRange }}
+                </span>
             </div>
 
             {{-- Progress --}}
-            <div class="mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="{{ $textColor }} fw-bold d-flex align-items-center" style="font-size:2rem">
-                        {{ number_format($progressValue, 0) }}% {!! $checkIcon !!}
-                    </div>
+            <div class="mb-1">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="{{ $textColor }} progress-num">
+                        {{ number_format($progressValue, 0) }}<span style="font-size:1.1rem;font-weight:700;letter-spacing:0;vertical-align:top;margin-top:0.5rem;display:inline-block;">%</span>
+                    </span>
+                    {!! $checkIcon !!}
                 </div>
 
-                <div class="progress mb-2" style="height:10px">
+                <div class="progress mb-2" style="height:8px;">
                     <div class="progress-bar {{ $bgColor }}"
                          role="progressbar"
                          style="width: {{ $progressValue }}%">
                     </div>
                 </div>
 
-                <small class="text-muted fw-medium">
-                    Tasks {{ $tasksDone }}/{{ $tasksTotal }} done
-                </small>
+                <span class="tasks-label">
+                    <i class="bi bi-check2-square me-1"></i>{{ $tasksDone }}/{{ $tasksTotal }} tasks done
+                </span>
             </div>
         </div>
 
@@ -82,24 +86,41 @@
 
         {{-- Footer Info --}}
         <div class="d-grid gap-2 project-meta">
-            <div class="d-flex align-items-center gap-2 text-sm text-dark">
-                <i class="bi bi-person-circle meta-icon user-icon"></i>
-                <span><strong>User:</strong> {{ $user }}</span>
+            <div class="meta-row">
+                <span class="meta-icon-pill icon-pic">
+                    <i class="bi bi-briefcase-fill"></i>
+                </span>
+                <div>
+                    <div class="meta-key">PIC</div>
+                    <div class="meta-val">{{ $pic }}</div>
+                </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 text-sm text-dark">
-                <i class="bi bi-briefcase-fill meta-icon pic-icon"></i>
-                <span><strong>PIC:</strong> {{ $pic }}</span>
+            <div class="meta-row">
+                <span class="meta-icon-pill icon-leader">
+                    <i class="bi bi-award-fill"></i>
+                </span>
+                <div>
+                    <div class="meta-key">Ketua</div>
+                    <div class="meta-val">{{ $leader }}</div>
+                </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 text-sm text-dark">
-                <i class="bi bi-award-fill meta-icon leader-icon"></i>
-                <span><strong>Ketua:</strong> {{ $leader }}</span>
+            <div class="meta-row">
+                <span class="meta-icon-pill icon-kategori">
+                    <i class="bi bi-tags-fill"></i>
+                </span>
+                <div>
+                    <div class="meta-key">Kategori</div>
+                    <div class="meta-val">{{ $kategori }}</div>
+                </div>
             </div>
+
         </div>
 
         <div class="hover-detail-text">
-            Click to view details
+            <i class="bi bi-arrow-right-circle me-1"></i>View Details
         </div>
+
     </div>
 </div>

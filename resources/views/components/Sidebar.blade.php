@@ -1,6 +1,6 @@
 @props([
     'projectId' => null, 
-    'activeMenu' => 'beranda' // Opsi: beranda, list, jobs, logbook, edit
+    'activeMenu' => 'beranda'
 ])
 
 @vite(['resources/css/Sidebar.css', 'resources/js/app.css'])
@@ -14,6 +14,7 @@
                 <i class="bi bi-grid-fill"></i>
             </div>
             <span class="label">Dashboard</span>
+            <div class="tooltip">Dashboard</div>
         </a>
 
         <a href="/projek/{{ $projectId }}/list" 
@@ -22,6 +23,7 @@
                 <i class="bi bi-calendar-event"></i>
             </div>
             <span class="label">List</span>
+            <div class="tooltip">List</div>
         </a>
 
         <a href="/projek/{{ $projectId }}/jobs" 
@@ -30,6 +32,7 @@
                 <i class="bi bi-clipboard-check"></i>
             </div>
             <span class="label">Jobs</span>
+            <div class="tooltip">Jobs</div>
         </a>
 
         <a href="/projek/{{ $projectId }}/logbook" 
@@ -38,6 +41,7 @@
                 <i class="bi bi-journal-text"></i>
             </div>
             <span class="label">Logbook</span>
+            <div class="tooltip">Logbook</div>
         </a>
 
         <a href="/projek/{{ $projectId }}/edit" 
@@ -46,6 +50,7 @@
                 <i class="bi bi-pencil-square"></i>
             </div>
             <span class="label">Edit</span>
+            <div class="tooltip">Edit</div>
         </a>
     </nav>
 </aside>

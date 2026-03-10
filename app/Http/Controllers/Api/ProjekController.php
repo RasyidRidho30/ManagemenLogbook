@@ -17,7 +17,8 @@ class ProjekController extends Controller
         security: [["bearerAuth" => []]],
         parameters: [
             new OA\Parameter(name: "search", in: "query", required: false, schema: new OA\Schema(type: "string"), description: "Cari nama projek"),
-            new OA\Parameter(name: "status", in: "query", required: false, schema: new OA\Schema(type: "string", enum: ["InProgress", "Completed", "OnHold"]), description: "Filter status")
+            new OA\Parameter(name: "status", in: "query", required: false, schema: new OA\Schema(type: "string", enum: ["InProgress", "Completed", "OnHold"]), description: "Filter status"),
+            new OA\Parameter(name: "kategori_id", in: "query", required: false, schema: new OA\Schema(type: "integer"), description: "Filter berdasarkan kategori")
         ],
         responses: [new OA\Response(response: 200, description: "List of projects", content: new OA\JsonContent(type: "array", items: new OA\Items(type: "object")))]
     )]
@@ -41,8 +42,15 @@ class ProjekController extends Controller
 
             if ($request->search) $query .= " AND p.pjk_nama LIKE '%{$request->search}%'";
             if ($request->status) $query .= " AND p.pjk_status = '{$request->status}'";
+            if ($request->kategori_id) $query .= " AND p.ktg_id = {$request->kategori_id}";
 
             $projek = DB::select($query, [$userId]);
+        }
+
+        if ($userRole === 'Admin' && $request->kategori_id) {
+            $projek = collect($projek)->filter(function ($p) use ($request) {
+                return $p->ktg_id == $request->kategori_id;
+            })->values()->toArray();
         }
 
         foreach ($projek as $p) {
@@ -86,7 +94,6 @@ class ProjekController extends Controller
         ),
         responses: [new OA\Response(response: 201, description: "Projek created"), new OA\Response(response: 400, description: "Validation error")]
     )]
-    
     public function store(Request $request)
     {
         $request->validate([
@@ -109,9 +116,17 @@ class ProjekController extends Controller
                 $user->usr_username
             ]);
 
+            $projektId = $result[0]->pjk_id;
+
+            if ($request->kategori_id) {
+                DB::table('projek')
+                    ->where('pjk_id', $projektId)
+                    ->update(['ktg_id' => $request->kategori_id]);
+            }
+
             return response()->json([
                 'message' => 'Projek created successfully',
-                'pjk_id' => $result[0]->pjk_id
+                'pjk_id' => $projektId
             ], 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
@@ -168,7 +183,6 @@ class ProjekController extends Controller
     )]
     public function update(Request $request, $id)
     {
-        // Ambil data lama untuk fallback jika parameter tidak dikirim
         $oldData = DB::select('CALL sp_read_projek(?, NULL, NULL)', [$id])[0] ?? null;
         if (!$oldData) return response()->json(['message' => 'Not Found'], 404);
 
@@ -183,6 +197,12 @@ class ProjekController extends Controller
                 $request->status ?? $oldData->pjk_status,
                 Auth::user()->usr_username
             ]);
+
+            if ($request->has('kategori_id')) {
+                DB::table('projek')
+                    ->where('pjk_id', $id)
+                    ->update(['ktg_id' => $request->kategori_id]);
+            }
 
             return response()->json(['message' => 'Projek updated']);
         } catch (\Exception $e) {
@@ -251,13 +271,6 @@ class ProjekController extends Controller
         }
     }
 
-    /* =========================================================================
-       TEAM MANAGEMENT FEATURES (ADDED)
-       ========================================================================= */
-
-    /**
-     * Get list of project members
-     */
     public function getMembers($id)
     {
         $rawMembers = DB::table('member_projek')
@@ -313,18 +326,82 @@ class ProjekController extends Controller
         return response()->json(['message' => 'Member added successfully'], 201);
     }
 
+    #[OA\Delete(
+        path: "/api/projek/{id}/member/{memberId}",
+        tags: ["Projek"],
+        summary: "Remove a project member",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "id", in: "path", required: true, description: "Project ID", schema: new OA\Schema(type: "integer")),
+            new OA\Parameter(name: "memberId", in: "path", required: true, description: "Member ID", schema: new OA\Schema(type: "integer"))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Success"),
+            new OA\Response(response: 403, description: "Forbidden"),
+            new OA\Response(response: 404, description: "Not Found"),
+            new OA\Response(response: 422, description: "Unprocessable Entity"),
+            new OA\Response(response: 500, description: "Server Error")
+        ]
+    )]
     public function removeMember($id, $memberId)
     {
-        $deleted = DB::table('member_projek')
-            ->where('pjk_id', $id)
-            ->where('mpk_id', $memberId)
-            ->delete();
+        try {
+            $currentUser = Auth::user();
 
-        if ($deleted) {
-            return response()->json(['message' => 'Member removed successfully']);
+            $isLeader = DB::table('member_projek')
+                ->where('pjk_id', $id)
+                ->where('usr_id', $currentUser->usr_id)
+                ->where('mpk_role_projek', 'Ketua')
+                ->exists();
+
+            if (!$isLeader && $currentUser->usr_role !== 'Admin') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Only the project leader or Admin can manage team members.'
+                ], 403);
+            }
+
+            $member = DB::table('member_projek')
+                ->where('mpk_id', $memberId)
+                ->where('pjk_id', $id)
+                ->first();
+
+            if (!$member) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Member data not found.'
+                ], 404);
+            }
+
+            $isAssignedToTask = DB::table('tugas')
+                ->join('kegiatan', 'tugas.kgt_id', '=', 'kegiatan.kgt_id')
+                ->join('modul', 'kegiatan.mdl_id', '=', 'modul.mdl_id')
+                ->where('modul.pjk_id', $id)
+                ->where('tugas.usr_id', $member->usr_id)
+                ->exists();
+
+            if ($isAssignedToTask) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Member cannot be removed because they are assigned as a PIC for one or more tasks in this project. Please reassign their tasks first.'
+                ], 422);
+            }
+
+            DB::table('member_projek')
+                ->where('mpk_id', $memberId)
+                ->where('pjk_id', $id)
+                ->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Member successfully removed from the project.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to remove member: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json(['message' => 'Member not found'], 404);
     }
 
     public function updateMember(Request $request, $id, $memberId)
