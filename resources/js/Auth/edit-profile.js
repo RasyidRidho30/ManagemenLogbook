@@ -1,78 +1,139 @@
-const token = localStorage.getItem("api_token");
-if (!token) window.location.href = "/login";
+document.addEventListener("DOMContentLoaded", initializeProfileManagement);
 
-axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+async function initializeProfileManagement() {
+    const apiToken = localStorage.getItem("api_token");
 
-function populateProfile(user) {
-    document.getElementById("first_name").value = user.first_name;
-    document.getElementById("last_name").value = user.last_name;
-    document.getElementById("email").value = user.email;
-    document.getElementById("username").value = user.username;
-    document.getElementById("avatarPreview").src = user.avatar;
+    if (!apiToken) {
+        executeLogout();
+        return;
+    }
+
+    configureAxiosAuthorization(apiToken);
+    await fetchAndRenderUserProfile();
+    initializeAvatarUploadListener();
+    initializeProfileFormListener();
 }
 
-axios
-    .get("/api/user")
-    .then((res) => {
-        const payload = res.data;
-        const user = payload.data ?? payload;
-        populateProfile(user);
-    })
-    .catch((err) => {
-        const status = err.response?.status;
-        if (status === 404) {
-            axios
-                .get("/api/me")
-                .then((r) => {
-                    const user = r.data.data ?? r.data;
-                    populateProfile(user);
-                })
-                .catch((e) => {
-                    const st = e.response?.status;
-                    if (st === 401 || st === 403) {
-                        localStorage.removeItem("api_token");
-                        window.location.href = "/login";
-                    } else {
-                        console.error("Fallback /api/me error", e);
-                        Swal.fire(
-                            "Error",
-                            e.response?.data?.message ||
-                                "Failed to fetch profile data (fallback)",
-                            "error",
-                        );
-                    }
-                });
+function executeLogout() {
+    localStorage.removeItem("api_token");
+    window.location.href = "/login";
+}
+
+function configureAxiosAuthorization(token) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
+async function fetchAndRenderUserProfile() {
+    try {
+        const response = await axios.get("/api/user");
+        const userData = response.data.data ?? response.data;
+        populateProfileFields(userData);
+    } catch (error) {
+        await handleProfileFetchError(error);
+    }
+}
+
+async function handleProfileFetchError(error) {
+    const statusCode = error.response?.status;
+
+    if (statusCode === 404) {
+        await executeProfileFetchFallback();
+        return;
+    }
+
+    if (statusCode === 401 || statusCode === 403) {
+        executeLogout();
+        return;
+    }
+
+    const errorMessage =
+        error.response?.data?.message ||
+        `Failed to fetch profile data (status: ${statusCode || "unknown"})`;
+    showErrorAlert(errorMessage);
+}
+
+async function executeProfileFetchFallback() {
+    try {
+        const response = await axios.get("/api/me");
+        const userData = response.data.data ?? response.data;
+        populateProfileFields(userData);
+    } catch (error) {
+        const statusCode = error.response?.status;
+
+        if (statusCode === 401 || statusCode === 403) {
+            executeLogout();
             return;
         }
 
-        if (status === 401 || status === 403) {
-            localStorage.removeItem("api_token");
-            window.location.href = "/login";
-        } else {
-            console.error("Error fetching /api/user", err);
-            Swal.fire(
-                "Error",
-                err.response?.data?.message ||
-                    `Failed to fetch profile data (status: ${status || "unknown"})`,
-                "error",
-            );
-        }
-    });
+        const errorMessage =
+            error.response?.data?.message ||
+            "Failed to fetch profile data (fallback)";
+        showErrorAlert(errorMessage);
+    }
+}
 
-document.getElementById("avatarInput").onchange = function () {
-    const [file] = this.files;
-    if (file)
-        document.getElementById("avatarPreview").src =
-            URL.createObjectURL(file);
-};
+function populateProfileFields(user) {
+    setElementValue("first_name", user.first_name);
+    setElementValue("last_name", user.last_name);
+    setElementValue("email", user.email);
+    setElementValue("username", user.username);
+    setElementImageSource("avatarPreview", user.avatar);
+}
 
-document.getElementById("formEditProfile").onsubmit = function (e) {
-    e.preventDefault();
+function setElementValue(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element && value !== undefined) {
+        element.value = value;
+    }
+}
 
-    const newPassword = document.querySelector('input[name="password"]').value;
-    const currentPassword = document.querySelector(
+function setElementImageSource(elementId, srcUrl) {
+    const element = document.getElementById(elementId);
+    if (element && srcUrl) {
+        element.src = srcUrl;
+    }
+}
+
+function initializeAvatarUploadListener() {
+    const avatarInput = document.getElementById("avatarInput");
+    if (avatarInput) {
+        avatarInput.addEventListener("change", handleAvatarPreview);
+    }
+}
+
+function handleAvatarPreview(event) {
+    const [selectedFile] = event.target.files;
+    if (selectedFile) {
+        const objectUrl = URL.createObjectURL(selectedFile);
+        setElementImageSource("avatarPreview", objectUrl);
+    }
+}
+
+function initializeProfileFormListener() {
+    const profileForm = document.getElementById("formEditProfile");
+    if (profileForm) {
+        profileForm.addEventListener("submit", processProfileUpdate);
+    }
+}
+
+async function processProfileUpdate(event) {
+    event.preventDefault();
+    const formElement = event.target;
+
+    if (!isPasswordChangeValid(formElement)) {
+        return;
+    }
+
+    await submitProfileFormData(formElement);
+}
+
+function isPasswordChangeValid(formElement) {
+    const newPassword = formElement.querySelector(
+        'input[name="password"]',
+    )?.value;
+    const currentPassword = formElement.querySelector(
         'input[name="current_password"]',
-    ).value;
+    )?.value;
 
     if (newPassword && !currentPassword) {
         Swal.fire(
@@ -80,20 +141,26 @@ document.getElementById("formEditProfile").onsubmit = function (e) {
             "Current password is required to change password",
             "error",
         );
-        return;
+        return false;
     }
 
-    const formData = new FormData(this);
+    return true;
+}
 
-    axios
-        .post("/api/profile/update", formData)
-        .then((res) => {
-            Swal.fire("Success", "Profile has been updated", "success").then(
-                () => location.reload(),
-            );
-        })
-        .catch((err) => {
-            const message = err.response?.data?.message || "An error occurred";
-            Swal.fire("Failed", message, "error");
-        });
-};
+async function submitProfileFormData(formElement) {
+    const formData = new FormData(formElement);
+
+    try {
+        await axios.post("/api/profile/update", formData);
+        await Swal.fire("Success", "Profile has been updated", "success");
+        window.location.reload();
+    } catch (error) {
+        const errorMessage =
+            error.response?.data?.message || "An error occurred";
+        Swal.fire("Failed", errorMessage, "error");
+    }
+}
+
+function showErrorAlert(message) {
+    Swal.fire("Error", message, "error");
+}

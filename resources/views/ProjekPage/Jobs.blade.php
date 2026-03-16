@@ -13,7 +13,7 @@
 <body>
 
 @include('components.NavbarSearchFilter', [
-    'title'    => 'Logbook Management System',
+    'title'    => 'Logbook Management',
     'showSearchFilter' => false,
     'userName' => auth()->user()->name ?? 'Guest',
     'userRole' => auth()->user()->role ?? 'No Role'

@@ -13,7 +13,7 @@
 <body>
 
 @include('components.NavbarSearchFilter', [
-    'title'             => 'Manajemen Projek',
+    'title'             => 'Logbook Management',
     'showSearchFilter'  => false,
     'searchPlaceholder' => 'Cari Logbook...',
     'userName'          => auth()->user()->name ?? 'Guest',

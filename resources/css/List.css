@@ -3,7 +3,7 @@
    Responsive: Mobile / Tablet / Desktop / Large Screen
    ========================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap');
 
 :root {
     --header-height: 68px;
@@ -25,16 +25,16 @@
     --radius-md: 10px;
     --radius-lg: 14px;
 
-    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
 
     --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ===================== BASE ===================== */
 body {
-    font-family: "DM Sans", sans-serif;
+    font-family: 'DM Sans', sans-serif;
     background-color: var(--color-bg);
     color: var(--color-text);
 }
@@ -152,16 +152,12 @@ body {
 
 /* Module rows */
 .module-row {
-    background: linear-gradient(
-        90deg,
-        var(--color-navy) 0%,
-        var(--color-navy-light) 100%
-    ) !important;
+    background: linear-gradient(90deg, var(--color-navy) 0%, var(--color-navy-light) 100%) !important;
     color: white !important;
     position: relative;
 }
 .module-row::before {
-    content: "";
+    content: '';
     position: absolute;
     left: 0;
     top: 0;
@@ -180,9 +176,7 @@ body {
 /* Task rows */
 .task-row {
     cursor: pointer;
-    transition:
-        background-color 0.15s ease,
-        transform 0.1s ease;
+    transition: background-color 0.15s ease, transform 0.1s ease;
     width: var(--left-width);
     background-color: var(--color-surface);
 }
@@ -259,11 +253,7 @@ body {
 
 /* ===================== TIMELINE SPACERS ===================== */
 .row-modul-timeline {
-    background: linear-gradient(
-        90deg,
-        var(--color-navy) 0%,
-        var(--color-navy-light) 100%
-    ) !important;
+    background: linear-gradient(90deg, var(--color-navy) 0%, var(--color-navy-light) 100%) !important;
 }
 .row-kegiatan-timeline {
     background-color: var(--color-blue-soft) !important;
@@ -293,7 +283,7 @@ body {
     transform: translateX(-50%);
     font-weight: 700;
     z-index: 22;
-    font-family: "JetBrains Mono", monospace;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 .day-grid-line {
@@ -334,9 +324,7 @@ body {
 }
 
 .highlight-active {
-    box-shadow:
-        0 0 0 3px var(--color-accent-glow),
-        0 4px 12px rgba(255, 125, 0, 0.2) !important;
+    box-shadow: 0 0 0 3px var(--color-accent-glow), 0 4px 12px rgba(255, 125, 0, 0.2) !important;
     border-color: var(--color-accent) !important;
     z-index: 10 !important;
     transform: translateY(-1px);
@@ -360,7 +348,7 @@ body {
     font-weight: 700;
     color: var(--color-text);
     white-space: nowrap;
-    font-family: "JetBrains Mono", monospace;
+    font-family: 'JetBrains Mono', monospace;
     pointer-events: none !important;
 }
 
@@ -489,8 +477,8 @@ body {
 @media (max-width: 768px) {
     :root {
         --header-height: 52px;
-        --row-height: 42px;
-        --left-width: 180px;
+        --row-height: 44px;
+        --left-width: 160px;
     }
 
     .main-content {
@@ -504,9 +492,7 @@ body {
         gap: 2px;
         margin-bottom: 0.5rem !important;
     }
-    .activity-header h2 {
-        font-size: 1.1rem;
-    }
+    .activity-header h2 { font-size: 1.1rem; }
     .activity-header h4 {
         font-size: 0.82rem;
         margin-left: 0 !important;
@@ -517,6 +503,7 @@ body {
         gap: 8px;
     }
 
+    /* Sembunyikan kolom PIC - hemat space */
     .col-pic,
     .col-pic span {
         display: none !important;
@@ -524,23 +511,39 @@ body {
 
     .activity-left {
         width: var(--left-width) !important;
-        box-shadow: 4px 0 16px rgba(0, 0, 0, 0.07);
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.07);
         position: relative;
         z-index: 30;
     }
-
     .activity-left-head,
     .task-row {
         width: var(--left-width);
     }
+    .activity-left-head { padding: 0 6px; }
 
-    .activity-left-head {
-        padding: 0 8px;
+    /* Izinkan teks task wrap 2 baris agar tidak terpotong */
+    .col-task {
+        font-size: 0.7rem;
+        padding-left: 8px !important;
+        white-space: normal;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
-    .col-task {
-        font-size: 0.72rem;
-        padding-left: 8px !important;
+    /* Module & kegiatan row: bisa 2 baris */
+    .module-row .d-flex,
+    .kegiatan-row .d-flex {
+        font-size: 0.68rem;
+        white-space: normal;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        padding-right: 4px;
     }
 
     .month-label {
@@ -548,100 +551,75 @@ body {
         top: 5px;
         padding: 1px 6px 1px 8px;
         border-left-width: 2px;
-        letter-spacing: 0.03em;
-        /* Floating pill on mobile */
         background-color: #fff;
         border-radius: 0 4px 4px 0;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         z-index: 25;
     }
 
-    .day-number {
-        font-size: 0.65rem;
-        bottom: 4px;
-    }
-
-    .duration-bar {
-        height: 24px;
-        border-radius: 4px;
-    }
-
-    .progress-text {
-        font-size: 0.6rem;
-    }
-
-    .today-marker .label {
-        font-size: 9px;
-        top: 14px;
-        padding: 2px 5px;
-    }
+    .day-number { font-size: 0.65rem; bottom: 4px; }
+    .duration-bar { height: 26px; border-radius: 4px; }
+    .progress-text { font-size: 0.6rem; }
+    .today-marker .label { font-size: 9px; top: 14px; padding: 2px 5px; }
 
     #btnToggleList {
         padding: 5px 10px !important;
         font-size: 0.75rem !important;
     }
-
-    .breadcrumb {
-        font-size: 0.8rem;
-    }
-
-    .module-row .d-flex,
-    .kegiatan-row .d-flex {
-        font-size: 0.72rem;
-    }
+    .breadcrumb { font-size: 0.75rem; }
 }
 
 /* =========================================================
-   RESPONSIVE — SMALL MOBILE (≤ 480px)
+   RESPONSIVE — SMALL MOBILE (<= 480px)
    ========================================================= */
 @media (max-width: 480px) {
     :root {
         --header-height: 46px;
-        --row-height: 38px;
-        --left-width: 145px;
+        --row-height: 40px;
+        --left-width: 150px;
     }
 
-    .main-content {
-        padding: 0.5rem 0.5rem 6rem;
-    }
+    .main-content { padding: 0.5rem 0.5rem 6rem; }
 
-    .activity-left {
-        width: var(--left-width) !important;
-    }
+    .activity-left { width: var(--left-width) !important; }
     .activity-left-head,
-    .task-row {
-        width: var(--left-width);
-    }
+    .task-row { width: var(--left-width); }
 
+    /* Teks task: 2 baris, font lebih kecil */
     .col-task {
-        font-size: 0.68rem;
+        font-size: 0.66rem;
         padding-left: 6px !important;
+        white-space: normal;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
-    .duration-bar {
-        height: 20px;
+    /* Module & kegiatan juga 2 baris */
+    .module-row .d-flex,
+    .kegiatan-row .d-flex {
+        font-size: 0.64rem;
+        white-space: normal;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        padding-right: 4px;
     }
 
-    .progress-text {
-        font-size: 0.58rem;
-    }
+    .duration-bar { height: 22px; }
+    .progress-text { font-size: 0.58rem; }
+    .month-label { font-size: 0.55rem; }
+    .day-number { font-size: 0.6rem; }
+    .today-marker .label { font-size: 8px; padding: 1px 4px; }
+    .activity-container { border-radius: var(--radius-md) !important; }
 
-    .month-label {
-        font-size: 0.55rem;
-    }
-
-    .day-number {
-        font-size: 0.6rem;
-    }
-
-    .today-marker .label {
-        font-size: 8px;
-        padding: 1px 4px;
-    }
-
-    .activity-container {
-        border-radius: var(--radius-md) !important;
-    }
+    /* Nama task di bar (saat collapsed) */
+    .inline-task-collapse span.fw-bold { font-size: 0.7rem; }
+    .inline-task-collapse .badge { font-size: 0.62rem; padding: 2px 6px; }
 }
 
 /* =========================================================

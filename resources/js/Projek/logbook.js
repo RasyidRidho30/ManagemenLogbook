@@ -1,34 +1,45 @@
 import axios from "axios";
 
 const apiToken = localStorage.getItem("api_token");
-axios.defaults.headers.common["Authorization"] = `Bearer ${apiToken}`;
+if (apiToken) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${apiToken}`;
+}
 axios.defaults.headers.common["Accept"] = "application/json";
 
 let usedTaskIds = [];
 
-const updateUsedTaskIds = () => {
+const updateUsedTaskIds = async () => {
     const projectId = window.location.pathname.split("/")[2];
-    return axios
-        .get(`/api/projek/${projectId}/logbook`)
-        .then((res) => {
-            const existingLogbooks = res.data.data || [];
-            usedTaskIds = existingLogbooks.map((log) =>
-                parseInt(log.id_tugas || log.tgs_id),
-            );
-            console.log("Updated Used Task IDs:", usedTaskIds);
-            return usedTaskIds;
-        })
-        .catch((err) => {
-            console.error("Failed to load logbook entries:", err);
-            return [];
-        });
+    try {
+        const res = await axios.get(`/api/projek/${projectId}/logbook`);
+        const existingLogbooks = res.data.data || [];
+        usedTaskIds = existingLogbooks.map((log) =>
+            parseInt(log.id_tugas || log.tgs_id),
+        );
+        return usedTaskIds;
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+};
+
+const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    });
 };
 
 document.addEventListener("DOMContentLoaded", () => {
     const formAdd = document.getElementById("formAddLogbook");
+    const modalElement = document.getElementById("modalAddLogbook");
+    const detailModal = document.getElementById("modalDetailLogbook");
+    const formEditComment = document.getElementById("formEditComment");
 
     if (formAdd) {
-        formAdd.addEventListener("submit", function (e) {
+        formAdd.addEventListener("submit", (e) => {
             e.preventDefault();
 
             const tgsId = document.getElementById("tgs_id").value;
@@ -45,22 +56,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Check if selected option is disabled (already in logbook)
-            if (selectedOption.disabled) {
+            if (
+                selectedOption.disabled ||
+                usedTaskIds.includes(parseInt(tgsId))
+            ) {
                 Swal.fire(
                     "Task Already Logged",
-                    "This task already has a logbook entry. Please select a different task.",
-                    "warning",
-                );
-                return;
-            }
-
-            // Additional check: verify task ID is not in usedTaskIds
-            const tgsIdInt = parseInt(tgsId);
-            if (usedTaskIds.includes(tgsIdInt)) {
-                Swal.fire(
-                    "Task Already Logged",
-                    "This task already has a logbook entry. Please select a different task.",
+                    "This task already has a logbook entry.",
                     "warning",
                 );
                 return;
@@ -94,111 +96,76 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Reset form when modal is shown
-    const modalElement = document.getElementById("modalAddLogbook");
     if (modalElement) {
-        modalElement.addEventListener("show.bs.modal", function () {
-            const form = document.getElementById("formAddLogbook");
-            if (form) {
-                form.reset();
-            }
+        modalElement.addEventListener("show.bs.modal", () => {
+            formAdd?.reset();
 
-            // Update used task IDs and disable options
             updateUsedTaskIds().then(() => {
                 const tgsSelect = document.getElementById("tgs_id");
                 const options = tgsSelect.querySelectorAll("option");
+                const LOG_TAG = "[ALREADY LOGGED]";
 
                 options.forEach((option) => {
-                    const tgsId = parseInt(option.value);
-                    const isUsed = usedTaskIds.includes(tgsId);
+                    const isUsed = usedTaskIds.includes(parseInt(option.value));
+                    option.disabled = isUsed;
 
                     if (isUsed) {
-                        option.disabled = true;
-                        // Ganti text jika belum ada [ALREADY LOGGED]
-                        if (!option.textContent.includes("[ALREADY LOGGED]")) {
-                            option.textContent = `[ALREADY LOGGED] ${option.textContent}`;
+                        if (!option.textContent.includes(LOG_TAG)) {
+                            option.textContent = `${LOG_TAG} ${option.textContent}`;
                         }
                     } else {
-                        option.disabled = false;
-                        // Remove [ALREADY LOGGED] prefix jika ada
-                        if (option.textContent.includes("[ALREADY LOGGED]")) {
-                            option.textContent = option.textContent.replace(
-                                "[ALREADY LOGGED] ",
-                                "",
-                            );
-                        }
+                        option.textContent = option.textContent.replace(
+                            `${LOG_TAG} `,
+                            "",
+                        );
                     }
                 });
             });
         });
     }
 
-    // Handle detail modal
-    const detailModal = document.getElementById("modalDetailLogbook");
     if (detailModal) {
-        detailModal.addEventListener("show.bs.modal", function (event) {
+        detailModal.addEventListener("show.bs.modal", (event) => {
             const button = event.relatedTarget;
-
-            // Format tanggal helper
-            const formatDate = (dateStr) => {
-                const date = new Date(dateStr);
-                return date.toLocaleDateString("id-ID", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                });
-            };
-
-            // Get data from button attributes
-            const tanggal = button.getAttribute("data-tanggal");
-            const task = button.getAttribute("data-task");
-            const kode = button.getAttribute("data-kode");
-            const deskripsi = button.getAttribute("data-deskripsi");
             const progress = button.getAttribute("data-progress") || 0;
             const komentar = button.getAttribute("data-komentar") || "";
-            const pic = button.getAttribute("data-pic");
-            const start = button.getAttribute("data-start");
-            const end = button.getAttribute("data-end");
 
-            // Update modal content
-            document.getElementById("detail-tanggal").textContent =
-                formatDate(tanggal);
-            document.getElementById("detail-task").textContent = task;
-            document.getElementById("detail-kode").textContent = `[${kode}]`;
-            document.getElementById("detail-deskripsi").textContent = deskripsi;
+            document.getElementById("detail-tanggal").textContent = formatDate(
+                button.getAttribute("data-tanggal"),
+            );
+            document.getElementById("detail-task").textContent =
+                button.getAttribute("data-task");
+            document.getElementById("detail-kode").textContent =
+                `[${button.getAttribute("data-kode")}]`;
+            document.getElementById("detail-deskripsi").textContent =
+                button.getAttribute("data-deskripsi");
             document.getElementById("detail-pic").innerHTML =
-                `<span class="badge bg-light text-dark border">${pic}</span>`;
-            document.getElementById("detail-start").textContent =
-                formatDate(start);
-            document.getElementById("detail-end").textContent = formatDate(end);
+                `<span class="badge bg-light text-dark border">${button.getAttribute("data-pic")}</span>`;
+            document.getElementById("detail-start").textContent = formatDate(
+                button.getAttribute("data-start"),
+            );
+            document.getElementById("detail-end").textContent = formatDate(
+                button.getAttribute("data-end"),
+            );
 
-            // Update progress badge
             const progressBadge = document.getElementById("detail-progress");
             progressBadge.textContent = `${progress}%`;
             progressBadge.className =
                 progress >= 100 ? "badge bg-success" : "badge bg-secondary";
 
-            // Update komentar
             const komentarEl = document.getElementById("detail-komentar");
-            if (komentar && komentar.trim()) {
-                komentarEl.textContent = komentar;
-            } else {
-                komentarEl.innerHTML = '<em class="text-muted">-</em>';
-            }
+            komentarEl.textContent = komentar.trim() ? komentar : "-";
+            if (!komentar.trim()) komentarEl.classList.add("text-muted");
 
-            // Store lbk_id in hidden field for edit comment form
-            const lbkId = button.getAttribute("data-lbk-id");
-            document.getElementById("lbk_id_edit").value = lbkId;
-            document.getElementById("komentarEdit").value = komentar || "";
+            document.getElementById("lbk_id_edit").value =
+                button.getAttribute("data-lbk-id");
+            document.getElementById("komentarEdit").value = komentar;
         });
     }
 
-    // Handle edit comment form submission
-    const formEditComment = document.getElementById("formEditComment");
     if (formEditComment) {
-        formEditComment.addEventListener("submit", function (e) {
+        formEditComment.addEventListener("submit", (e) => {
             e.preventDefault();
-
             const lbkId = document.getElementById("lbk_id_edit").value;
             const komentar =
                 document.getElementById("komentarEdit").value || "";

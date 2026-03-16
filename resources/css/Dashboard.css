@@ -380,7 +380,6 @@ hr {
 @media (max-width: 480px) {
     .main-content { padding: 0.5rem 0.5rem 6rem; }
 
-    /* Sembunyikan kolom Weight Portion dan Project Contribution di layar kecil */
     .custom-table th:nth-child(5),
     .custom-table td:nth-child(5) { display: none; }
 

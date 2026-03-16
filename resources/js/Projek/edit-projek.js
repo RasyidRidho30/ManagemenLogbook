@@ -10,7 +10,7 @@ const apiBase = "/api";
 
 document.addEventListener("DOMContentLoaded", function () {
     const urlParts = window.location.pathname.split("/");
-    const projectId = urlParts[2]; // Pastikan urutan URL sesuai (misal: /projek/1/edit)
+    const projectId = urlParts[2];
 
     const tglMulaiInput = document.getElementById("pjk_tgl_mulai");
     const tglSelesaiInput = document.getElementById("pjk_tgl_selesai");
@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let originalTglMulai = null;
     let originalTglSelesai = null;
 
-    // Load categories
     const loadCategories = async () => {
         try {
             const { data: response } = await axios.get(`${apiBase}/kategori`);
@@ -31,12 +30,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (kategoriSelect) {
                 const currentValue = kategoriSelect.value;
-
-                // Keep the default option
                 kategoriSelect.innerHTML =
                     '<option value="">-- Select Category --</option>';
 
-                // Add categories to select
                 categories.forEach((cat) => {
                     if (cat.ktg_is_active == 0 || cat.ktg_is_active === false)
                         return;
@@ -54,49 +50,47 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    loadCategories();
-
     function initializeDateValidation() {
         if (tglMulaiInput) tglMulaiInput.removeAttribute("min");
         if (tglSelesaiInput) tglSelesaiInput.removeAttribute("min");
     }
 
-    if (tglMulaiInput) {
-        tglMulaiInput.addEventListener("change", function () {
-            const tglMulaiValue = this.value;
+    function handleDateChange() {
+        const tglMulaiValue = tglMulaiInput.value;
 
-            if (!tglMulaiValue) {
-                if (tglSelesaiInput) {
-                    tglSelesaiInput.value = "";
-                    tglSelesaiInput.removeAttribute("min");
-                }
-            } else {
-                const mulaiDate = new Date(tglMulaiValue);
-                const selesaiMinDate = new Date(mulaiDate);
-                selesaiMinDate.setDate(selesaiMinDate.getDate() + 1);
-                const selesaiMinDateString = selesaiMinDate
-                    .toISOString()
-                    .split("T")[0];
+        if (!tglMulaiValue) {
+            if (tglSelesaiInput) {
+                tglSelesaiInput.value = "";
+                tglSelesaiInput.removeAttribute("min");
+            }
+        } else {
+            const mulaiDate = new Date(tglMulaiValue);
+            const selesaiMinDate = new Date(mulaiDate);
+            selesaiMinDate.setDate(selesaiMinDate.getDate() + 1);
 
-                if (tglSelesaiInput) {
-                    tglSelesaiInput.setAttribute("min", selesaiMinDateString);
-                }
+            const selesaiMinDateString = selesaiMinDate
+                .toISOString()
+                .split("T")[0];
 
-                if (tglSelesaiInput && tglSelesaiInput.value) {
+            if (tglSelesaiInput) {
+                tglSelesaiInput.setAttribute("min", selesaiMinDateString);
+
+                if (tglSelesaiInput.value) {
                     const selesaiDate = new Date(tglSelesaiInput.value);
                     if (selesaiDate <= mulaiDate) {
                         tglSelesaiInput.value = "";
                     }
                 }
             }
-        });
+        }
     }
 
     function loadProjectData() {
         axios
-            .get(`/api/projek/${projectId}`)
+            .get(`${apiBase}/projek/${projectId}`)
             .then((res) => {
                 const data = res.data.detail;
+
                 document.getElementById("pjk_nama").value = data.nama;
                 document.getElementById("pjk_deskripsi").value = data.deskripsi;
                 document.getElementById("pjk_pic").value = data.pic;
@@ -126,10 +120,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function loadCurrentUserRole() {
         axios
-            .get(`/api/projek/${projectId}/member`)
+            .get(`${apiBase}/projek/${projectId}/member`)
             .then((res) => {
                 const members = res.data;
-
                 const userData = JSON.parse(
                     localStorage.getItem("user_data") || "{}",
                 );
@@ -149,18 +142,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 const btnHapusProjek =
                     document.getElementById("btnHapusProjek");
 
-                if (
-                    currentUserRole === "Ketua" ||
-                    userAccountRole === "Admin"
-                ) {
-                    if (btnAddTeamMember)
-                        btnAddTeamMember.style.display = "block";
-                    if (btnHapusProjek) btnHapusProjek.style.display = "block";
-                } else {
-                    if (btnAddTeamMember)
-                        btnAddTeamMember.style.display = "none";
-                    if (btnHapusProjek) btnHapusProjek.style.display = "none";
-                }
+                const hasAccess =
+                    currentUserRole === "Ketua" || userAccountRole === "Admin";
+
+                if (btnAddTeamMember)
+                    btnAddTeamMember.style.display = hasAccess
+                        ? "block"
+                        : "none";
+                if (btnHapusProjek)
+                    btnHapusProjek.style.display = hasAccess ? "block" : "none";
 
                 loadMembers();
             })
@@ -170,201 +160,108 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
-    loadProjectData();
+    function handleFormSubmit(e) {
+        e.preventDefault();
 
-    const form = document.getElementById("formEditProjek");
-    if (form) {
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
+        const tglMulaiValue = document.getElementById("pjk_tgl_mulai").value;
+        const tglSelesaiValue =
+            document.getElementById("pjk_tgl_selesai").value;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-            const tglMulaiValue =
-                document.getElementById("pjk_tgl_mulai").value;
-            const tglSelesaiValue =
-                document.getElementById("pjk_tgl_selesai").value;
+        const tglMulaiChanged = tglMulaiValue !== originalTglMulai;
+        const tglSelesaiChanged = tglSelesaiValue !== originalTglSelesai;
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const tglMulaiChanged = tglMulaiValue !== originalTglMulai;
-            const tglSelesaiChanged = tglSelesaiValue !== originalTglSelesai;
-
-            // Only validate start date if it was changed
-            if (tglMulaiChanged) {
-                if (!tglMulaiValue) {
-                    Swal.fire(
-                        "Validation Error",
-                        "Tanggal mulai harus diisi!",
-                        "warning",
-                    );
-                    return;
-                }
-
-                const mulaiDate = new Date(tglMulaiValue);
-                if (mulaiDate < today) {
-                    Swal.fire(
-                        "Validation Error",
-                        "Tanggal mulai tidak boleh kurang dari hari ini!",
-                        "warning",
-                    );
-                    return;
-                }
-            }
-
-            // Only validate end date if it was changed
-            if (tglSelesaiChanged) {
-                if (!tglSelesaiValue) {
-                    Swal.fire(
-                        "Validation Error",
-                        "Tanggal selesai harus diisi!",
-                        "warning",
-                    );
-                    return;
-                }
-
-                // Use effective start date: new value if changed, otherwise original
-                const effectiveMulai = tglMulaiChanged
-                    ? tglMulaiValue
-                    : originalTglMulai;
-                const selesaiDate = new Date(tglSelesaiValue);
-                const mulaiDate = new Date(effectiveMulai);
-
-                if (selesaiDate <= mulaiDate) {
-                    Swal.fire(
-                        "Validation Error",
-                        "Tanggal selesai harus lebih besar dari tanggal mulai!",
-                        "warning",
-                    );
-                    return;
-                }
-            }
-
-            const payload = {
-                nama: document.getElementById("pjk_nama").value,
-                kategori_id: document.getElementById("pjk_kategori").value,
-                deskripsi: document.getElementById("pjk_deskripsi").value,
-                pic: document.getElementById("pjk_pic").value,
-                status: document.getElementById("pjk_status").value,
-                tgl_mulai: tglMulaiValue,
-                tgl_selesai: tglSelesaiValue,
-            };
-
-            axios
-                .put(`/api/projek/${projectId}`, payload)
-                .then(() =>
-                    Swal.fire({
-                        icon: "success",
-                        title: "Success!",
-                        timer: 1500,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: "top-end",
-                    }).then(() => loadProjectData()),
-                )
-                .catch((err) =>
-                    Swal.fire({
-                        icon: "error",
-                        title: "Failed",
-                        text: err.response?.data?.message || "Error",
-                        toast: true,
-                        position: "top-end",
-                        showConfirmButton: false,
-                        timer: 2000,
-                    }),
-                );
-        });
-    }
-
-    // ========== DELETE PROJECT CONFIRMATION ==========
-    const deleteConfirmInput = document.getElementById("deleteConfirmInput");
-    const btnConfirmDelete = document.getElementById("btnConfirmDelete");
-    const deleteConfirmModal = document.getElementById("deleteConfirmModal");
-
-    if (deleteConfirmInput) {
-        deleteConfirmInput.addEventListener("input", function () {
-            const confirmText =
-                document.getElementById("confirmationText").textContent;
-            const inputValue = this.value;
-
-            if (inputValue === confirmText) {
-                btnConfirmDelete.disabled = false;
-            } else {
-                btnConfirmDelete.disabled = true;
-            }
-        });
-    }
-
-    if (btnConfirmDelete) {
-        btnConfirmDelete.addEventListener("click", function () {
-            const confirmText =
-                document.getElementById("confirmationText").textContent;
-            const inputValue = deleteConfirmInput.value;
-
-            if (inputValue !== confirmText) {
+        if (tglMulaiChanged) {
+            if (!tglMulaiValue) {
                 Swal.fire(
-                    "Error",
-                    "Confirmation text does not match!",
-                    "error",
+                    "Validation Error",
+                    "Tanggal mulai harus diisi!",
+                    "warning",
+                );
+                return;
+            }
+            if (new Date(tglMulaiValue) < today) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal mulai tidak boleh kurang dari hari ini!",
+                    "warning",
+                );
+                return;
+            }
+        }
+
+        if (tglSelesaiChanged) {
+            if (!tglSelesaiValue) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal selesai harus diisi!",
+                    "warning",
                 );
                 return;
             }
 
-            btnConfirmDelete.disabled = true;
-            const originalText = btnConfirmDelete.innerHTML;
-            btnConfirmDelete.innerHTML =
-                '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+            const effectiveMulai = tglMulaiChanged
+                ? tglMulaiValue
+                : originalTglMulai;
+            if (new Date(tglSelesaiValue) <= new Date(effectiveMulai)) {
+                Swal.fire(
+                    "Validation Error",
+                    "Tanggal selesai harus lebih besar dari tanggal mulai!",
+                    "warning",
+                );
+                return;
+            }
+        }
 
-            axios
-                .delete(`/api/projek/${projectId}`)
-                .then(() => {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Project Deleted",
-                        text: "Project has been permanently deleted.",
-                        showConfirmButton: false,
-                        timer: 2000,
-                        toast: true,
-                        position: "top-end",
-                    }).then(() => {
-                        window.location.href = "/projek";
-                    });
-                })
-                .catch((err) => {
-                    btnConfirmDelete.disabled = false;
-                    btnConfirmDelete.innerHTML = originalText;
-                    Swal.fire(
-                        "Error",
-                        err.response?.data?.message ||
-                            "Failed to delete project",
-                        "error",
-                    );
+        const payload = {
+            nama: document.getElementById("pjk_nama").value,
+            kategori_id: document.getElementById("pjk_kategori").value,
+            deskripsi: document.getElementById("pjk_deskripsi").value,
+            pic: document.getElementById("pjk_pic").value,
+            status: document.getElementById("pjk_status").value,
+            tgl_mulai: tglMulaiValue,
+            tgl_selesai: tglSelesaiValue,
+        };
+
+        axios
+            .put(`${apiBase}/projek/${projectId}`, payload)
+            .then(() => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Success!",
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: "top-end",
+                }).then(() => loadProjectData());
+            })
+            .catch((err) => {
+                Swal.fire({
+                    icon: "error",
+                    title: "Failed",
+                    text: err.response?.data?.message || "Error",
+                    toast: true,
+                    position: "top-end",
+                    showConfirmButton: false,
+                    timer: 2000,
                 });
-        });
+            });
     }
 
-    if (deleteConfirmModal) {
-        deleteConfirmModal.addEventListener("show.bs.modal", function () {
-            deleteConfirmInput.value = "";
-            btnConfirmDelete.disabled = true;
-            btnConfirmDelete.innerHTML = "Delete Project Permanently";
-        });
-    }
-
-    // ==========================================================
-    // LOGIKA KELOLA TIM
-    // ==========================================================
+    // ========== MEMBER MANAGEMENT LOGIC ==========
 
     const modalEditMemberEl = document.getElementById("editMemberModal");
-    let modalEditMember = null;
-    if (modalEditMemberEl) {
-        modalEditMember = new bootstrap.Modal(modalEditMemberEl);
-    }
+    const modalEditMember = modalEditMemberEl
+        ? new bootstrap.Modal(modalEditMemberEl)
+        : null;
 
     function loadMembers() {
         const listContainer = document.getElementById("teamMembersList");
         const countBadge = document.getElementById("memberCount");
 
         axios
-            .get(`/api/projek/${projectId}/member`)
+            .get(`${apiBase}/projek/${projectId}/member`)
             .then((res) => {
                 const members = res.data;
                 if (countBadge) countBadge.textContent = members.length;
@@ -377,32 +274,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 let html = "";
                 members.forEach((m) => {
                     const nameParts = m.user.name.split(" ");
-                    let initials = nameParts[0].charAt(0);
+                    let initials = nameParts[0].charAt(0).toUpperCase();
                     if (nameParts.length > 1)
-                        initials += nameParts[1].charAt(0);
-                    initials = initials.toUpperCase();
+                        initials += nameParts[1].charAt(0).toUpperCase();
 
-                    const removeButton =
+                    const canManage =
                         currentUserRole === "Ketua" ||
-                        userAccountRole === "Admin"
-                            ? `<button class="btn btn-sm btn-link text-danger btn-remove-member" 
-                                    data-id="${m.id}" 
-                                    title="Remove Member"
-                                    onclick="event.stopPropagation(); removeMember(${m.id})">
-                                <i class="bi bi-x-circle-fill fs-5"></i>
-                            </button>`
-                            : "";
-                    const onClickEdit =
-                        currentUserRole === "Ketua" ||
-                        userAccountRole === "Admin"
-                            ? `openEditMemberModal(${m.id}, '${m.user.name}', '${m.role}')"`
-                            : "";
+                        userAccountRole === "Admin";
+
+                    const removeButton = canManage
+                        ? `<button class="btn btn-sm btn-link text-danger btn-remove-member" 
+                                onclick="event.stopPropagation(); removeMember(${m.id})">
+                            <i class="bi bi-x-circle-fill fs-5"></i>
+                        </button>`
+                        : "";
+
+                    const onClickEdit = canManage
+                        ? `onclick="openEditMemberModal(${m.id}, '${m.user.name}', '${m.role}')"`
+                        : "";
 
                     html += `
                         <div class="list-group-item member-item d-flex justify-content-between align-items-center py-3 px-3" 
-                             style="cursor: pointer;"
-                             onclick="${onClickEdit}">
-                            
+                             style="cursor: pointer;" ${onClickEdit}>
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle me-3">${initials}</div>
                                 <div>
@@ -410,14 +303,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <small class="text-muted"><i class="bi bi-briefcase me-1"></i>${m.role}</small>
                                 </div>
                             </div>
-                            
                             ${removeButton}
-                        </div>
-                    `;
+                        </div>`;
                 });
                 listContainer.innerHTML = html;
             })
-            .catch((err) => {
+            .catch(() => {
                 if (listContainer)
                     listContainer.innerHTML = `<div class="text-center p-3 text-danger">Failed to load members.</div>`;
             });
@@ -427,7 +318,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("editMemberId").value = id;
         document.getElementById("editMemberName").value = name;
         document.getElementById("editMemberRole").value = role;
-
         if (modalEditMember) modalEditMember.show();
     };
 
@@ -442,7 +332,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }).then((result) => {
             if (result.isConfirmed) {
                 axios
-                    .delete(`/api/projek/${projectId}/member/${memberId}`)
+                    .delete(`${apiBase}/projek/${projectId}/member/${memberId}`)
                     .then(() => {
                         Swal.fire({
                             icon: "success",
@@ -458,53 +348,20 @@ document.addEventListener("DOMContentLoaded", function () {
                         const errorMessage =
                             err.response?.data?.message ||
                             "Failed to remove member";
-                        const errorIcon =
-                            err.response?.status === 422 ? "warning" : "error";
+                        const isValidationError = err.response?.status === 422;
                         Swal.fire({
-                            title:
-                                errorIcon === "warning"
-                                    ? "Cannot Remove Member"
-                                    : "Error",
+                            title: isValidationError
+                                ? "Cannot Remove Member"
+                                : "Error",
                             text: errorMessage,
-                            icon: errorIcon,
+                            icon: isValidationError ? "warning" : "error",
                         });
                     });
             }
         });
     };
 
-    const formEditMember = document.getElementById("formEditMember");
-    if (formEditMember) {
-        formEditMember.addEventListener("submit", function (e) {
-            e.preventDefault();
-            const memberId = document.getElementById("editMemberId").value;
-            const newRole = document.getElementById("editMemberRole").value;
-
-            axios
-                .put(`/api/projek/${projectId}/member/${memberId}`, {
-                    role: newRole,
-                })
-                .then(() => {
-                    if (modalEditMember) modalEditMember.hide();
-                    Swal.fire({
-                        icon: "success",
-                        title: "Role Updated",
-                        showConfirmButton: false,
-                        timer: 1500,
-                        toast: true,
-                        position: "top-end",
-                    });
-                    loadMembers();
-                })
-                .catch((err) =>
-                    Swal.fire(
-                        "Error",
-                        err.response?.data?.message || "Failed to update role",
-                        "error",
-                    ),
-                );
-        });
-    }
+    // ========== ADD MEMBER MODAL LOGIC ==========
 
     let availableUsers = [];
     let selectedUserId = null;
@@ -513,32 +370,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalAddMember = modalAddMemberEl
         ? new bootstrap.Modal(modalAddMemberEl)
         : null;
-
     const userListContainer = document.getElementById("userSelectionList");
     const searchInput = document.getElementById("searchUser");
     const inputRole = document.getElementById("inputRole");
     const btnSubmitMember = document.getElementById("btnSubmitAddMember");
     const btnSearchTrigger = document.getElementById("btnSearchTrigger");
     const btnAddTeamMember = document.getElementById("btnAddTeamMember");
-
-    if (btnAddTeamMember) {
-        btnAddTeamMember.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (modalAddMember) {
-                modalAddMember.show();
-            }
-        });
-    }
-
-    window.selectUserItem = function (id) {
-        selectedUserId = id;
-        const keyword = searchInput.value.toLowerCase();
-        const currentList = availableUsers.filter((u) =>
-            u.name.toLowerCase().includes(keyword),
-        );
-        renderUserList(currentList);
-        checkSubmitButton();
-    };
 
     function renderUserList(users) {
         if (users.length === 0) {
@@ -549,22 +386,13 @@ document.addEventListener("DOMContentLoaded", function () {
         let html = "";
         users.forEach((u) => {
             const nameParts = u.name.split(" ");
-            let initials = nameParts[0].charAt(0);
-            if (nameParts.length > 1) initials += nameParts[1].charAt(0);
-            initials = initials.toUpperCase();
+            let initials = nameParts[0].charAt(0).toUpperCase();
+            if (nameParts.length > 1)
+                initials += nameParts[1].charAt(0).toUpperCase();
 
-            const isSelected = u.id == selectedUserId ? "selected" : "";
-            const btnClass =
-                u.id == selectedUserId ? "btn-success" : "btn-select-user";
-            const btnContent =
-                u.id == selectedUserId
-                    ? '<i class="bi bi-check-lg"></i>'
-                    : "+ Add Member";
-            const pointerEvents =
-                u.id == selectedUserId ? "pointer-events: none;" : "";
-
+            const isSelected = u.id == selectedUserId;
             html += `
-                <div class="user-select-item ${isSelected}" onclick="selectUserItem(${u.id})">
+                <div class="user-select-item ${isSelected ? "selected" : ""}" onclick="selectUserItem(${u.id})">
                     <div class="d-flex align-items-center">
                         <div class="user-avatar-dark">${initials}</div>
                         <div>
@@ -572,33 +400,145 @@ document.addEventListener("DOMContentLoaded", function () {
                             <small class="text-muted" style="font-size:0.75rem">${u.email}</small>
                         </div>
                     </div>
-                    <button class="${btnClass}" style="border:none; border-radius:6px; padding:5px 12px; font-size:0.8rem; ${pointerEvents}">
-                        ${btnContent}
+                    <button class="${isSelected ? "btn-success" : "btn-select-user"}" 
+                            style="border:none; border-radius:6px; padding:5px 12px; font-size:0.8rem; ${isSelected ? "pointer-events: none;" : ""}">
+                        ${isSelected ? '<i class="bi bi-check-lg"></i>' : "+ Add Member"}
                     </button>
-                </div>
-            `;
+                </div>`;
         });
         userListContainer.innerHTML = html;
     }
 
+    window.selectUserItem = function (id) {
+        selectedUserId = id;
+        const keyword = searchInput.value.toLowerCase();
+        const filtered = availableUsers.filter((u) =>
+            u.name.toLowerCase().includes(keyword),
+        );
+        renderUserList(filtered);
+        checkSubmitButton();
+    };
+
     function checkSubmitButton() {
-        if (selectedUserId && inputRole.value.trim() !== "") {
-            btnSubmitMember.disabled = false;
-        } else {
-            btnSubmitMember.disabled = true;
-        }
+        btnSubmitMember.disabled = !(
+            selectedUserId && inputRole.value.trim() !== ""
+        );
     }
 
     function executeSearch() {
         const keyword = searchInput.value.toLowerCase();
-        const filteredUsers = availableUsers.filter((u) =>
+        const filtered = availableUsers.filter((u) =>
             u.name.toLowerCase().includes(keyword),
         );
-        renderUserList(filteredUsers);
+        renderUserList(filtered);
+    }
+
+    // ========== EVENT LISTENERS ==========
+
+    loadCategories();
+    loadProjectData();
+
+    if (tglMulaiInput)
+        tglMulaiInput.addEventListener("change", handleDateChange);
+    if (form) form.addEventListener("submit", handleFormSubmit);
+
+    const deleteConfirmInput = document.getElementById("deleteConfirmInput");
+    const btnConfirmDelete = document.getElementById("btnConfirmDelete");
+    const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+
+    if (deleteConfirmInput) {
+        deleteConfirmInput.addEventListener("input", function () {
+            const confirmText =
+                document.getElementById("confirmationText").textContent;
+            btnConfirmDelete.disabled = this.value !== confirmText;
+        });
+    }
+
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener("click", function () {
+            btnConfirmDelete.disabled = true;
+            const originalText = btnConfirmDelete.innerHTML;
+            btnConfirmDelete.innerHTML =
+                '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+
+            axios
+                .delete(`${apiBase}/projek/${projectId}`)
+                .then(() => {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Project Deleted",
+                        text: "Project has been permanently deleted.",
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: "top-end",
+                    }).then(() => (window.location.href = "/projek"));
+                })
+                .catch((err) => {
+                    btnConfirmDelete.disabled = false;
+                    btnConfirmDelete.innerHTML = originalText;
+                    Swal.fire(
+                        "Error",
+                        err.response?.data?.message ||
+                            "Failed to delete project",
+                        "error",
+                    );
+                });
+        });
+    }
+
+    if (deleteConfirmModal) {
+        deleteConfirmModal.addEventListener("show.bs.modal", () => {
+            deleteConfirmInput.value = "";
+            btnConfirmDelete.disabled = true;
+            btnConfirmDelete.innerHTML = "Delete Project Permanently";
+        });
+    }
+
+    if (document.getElementById("formEditMember")) {
+        document
+            .getElementById("formEditMember")
+            .addEventListener("submit", function (e) {
+                e.preventDefault();
+                const memberId = document.getElementById("editMemberId").value;
+                const newRole = document.getElementById("editMemberRole").value;
+
+                axios
+                    .put(`${apiBase}/projek/${projectId}/member/${memberId}`, {
+                        role: newRole,
+                    })
+                    .then(() => {
+                        if (modalEditMember) modalEditMember.hide();
+                        Swal.fire({
+                            icon: "success",
+                            title: "Role Updated",
+                            showConfirmButton: false,
+                            timer: 1500,
+                            toast: true,
+                            position: "top-end",
+                        });
+                        loadMembers();
+                    })
+                    .catch((err) =>
+                        Swal.fire(
+                            "Error",
+                            err.response?.data?.message ||
+                                "Failed to update role",
+                            "error",
+                        ),
+                    );
+            });
+    }
+
+    if (btnAddTeamMember) {
+        btnAddTeamMember.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (modalAddMember) modalAddMember.show();
+        });
     }
 
     if (modalAddMemberEl) {
-        modalAddMemberEl.addEventListener("show.bs.modal", function () {
+        modalAddMemberEl.addEventListener("show.bs.modal", () => {
             selectedUserId = null;
             inputRole.value = "";
             searchInput.value = "";
@@ -608,22 +548,22 @@ document.addEventListener("DOMContentLoaded", function () {
             userListContainer.innerHTML = `<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm mb-2"></div><div>Loading users...</div></div>`;
 
             axios
-                .get(`/api/users?role=User&exclude_project=${projectId}`)
+                .get(`${apiBase}/users?role=User&exclude_project=${projectId}`)
                 .then((res) => {
                     availableUsers = res.data;
                     renderUserList(availableUsers);
                 })
-                .catch(() => {
-                    userListContainer.innerHTML =
-                        '<div class="text-center py-4 text-danger">Error loading users.</div>';
-                });
+                .catch(
+                    () =>
+                        (userListContainer.innerHTML =
+                            '<div class="text-center py-4 text-danger">Error loading users.</div>'),
+                );
         });
 
         if (btnSearchTrigger)
             btnSearchTrigger.addEventListener("click", executeSearch);
-
         if (searchInput) {
-            searchInput.addEventListener("keypress", function (e) {
+            searchInput.addEventListener("keypress", (e) => {
                 if (e.key === "Enter") {
                     e.preventDefault();
                     executeSearch();
@@ -633,18 +573,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (this.value === "") renderUserList(availableUsers);
             });
         }
-
         inputRole.addEventListener("input", checkSubmitButton);
 
-        btnSubmitMember.addEventListener("click", function () {
+        btnSubmitMember.addEventListener("click", () => {
             const role = inputRole.value;
             if (!selectedUserId || !role) return;
-
-            const payload = {
-                user_id: selectedUserId,
-                role: role,
-                pjk_id: projectId,
-            };
 
             document.getElementById("btnSubmitText").style.display = "none";
             document.getElementById("btnSubmitLoader").style.display =
@@ -652,7 +585,11 @@ document.addEventListener("DOMContentLoaded", function () {
             btnSubmitMember.disabled = true;
 
             axios
-                .post(`/api/projek/${projectId}/member`, payload)
+                .post(`${apiBase}/projek/${projectId}/member`, {
+                    user_id: selectedUserId,
+                    role: role,
+                    pjk_id: projectId,
+                })
                 .then(() => {
                     if (modalAddMember) modalAddMember.hide();
                     Swal.fire({

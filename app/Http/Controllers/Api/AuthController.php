@@ -14,19 +14,19 @@ class AuthController extends Controller
     #[OA\Post(
         path: "/api/login",
         tags: ["Authentication"],
-        summary: "Login User menggunakan Email atau Username",
+        summary: "Login User using Email or Username",
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 required: ["login_identity", "password"],
                 properties: [
-                    new OA\Property(property: "login_identity", type: "string", example: "rasyid_ridho atau rasyid@polman.astra.ac.id"),
+                    new OA\Property(property: "login_identity", type: "string", example: "rasyid_ridho or rasyid@polman.astra.ac.id"),
                     new OA\Property(property: "password", type: "string", format: "password", example: "password123"),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Login Berhasil"),
+            new OA\Response(response: 200, description: "Login Successful"),
             new OA\Response(response: 401, description: "Unauthorized")
         ]
     )]
@@ -41,7 +41,6 @@ class AuthController extends Controller
 
         if (Auth::attempt([$fieldType => $request->login_identity, 'password' => $request->password])) {
 
-            /** @var \App\Models\User $user */
             $user = Auth::user();
 
             $user->tokens()->delete();
@@ -54,9 +53,8 @@ class AuthController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'Email/Username atau Password salah'], 401);
+        return response()->json(['message' => 'Invalid Email/Username or Password'], 401);
     }
-
 
     #[OA\Post(
         path: "/api/logout",
@@ -64,7 +62,7 @@ class AuthController extends Controller
         summary: "Logout User",
         security: [["bearerAuth" => []]],
         responses: [
-            new OA\Response(response: 200, description: "Logout Berhasil"),
+            new OA\Response(response: 200, description: "Logout Successful"),
             new OA\Response(response: 401, description: "Unauthenticated")
         ]
     )]

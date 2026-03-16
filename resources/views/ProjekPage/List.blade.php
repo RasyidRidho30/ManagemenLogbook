@@ -8,36 +8,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* ── Tooltip Base ── */
+        
         .progress-fill,
         .progress-text { pointer-events: none !important; }
 
-        .tooltip {
-            z-index: 99999999 !important;
-            pointer-events: none !important;
-            transition: opacity 0.15s linear !important;
-        }
-        .tooltip.fade .tooltip-inner {
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-        }
-        .tooltip.show .tooltip-inner { transform: scale(1) !important; }
-        .tooltip.show { opacity: 0.95 !important; visibility: visible !important; }
-        .tooltip-inner {
-            max-width: 260px !important;
-            padding: 0.45rem 0.9rem !important;
-            color: #fff !important;
-            text-align: left !important;
-            background-color: #0f2d45 !important;
-            border-radius: 8px !important;
-            font-size: 0.82rem !important;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-        }
-        .bs-tooltip-top .tooltip-arrow::before,
-        .bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
-            border-top-color: #0f2d45 !important;
-        }
-
-        /* ── Page Header tweaks ── */
+        
         .page-header-wrap {
             display: flex;
             justify-content: space-between;
@@ -67,7 +42,7 @@
             flex-wrap: wrap;
         }
 
-        /* ── Toggle Button ── */
+        
         #btnToggleList {
             display: flex;
             align-items: center;
@@ -88,9 +63,9 @@
             font-size: 1rem;
         }
 
-        /* ── Breadcrumb ── */
+        
         .breadcrumb {
-            font-size: 1rem;
+            font-size: 0.8rem;
             margin-bottom: 0;
         }
         .breadcrumb-item a {
@@ -102,7 +77,7 @@
         .breadcrumb-item.active { color: #0f2d45; font-weight: 600; }
         .breadcrumb-item + .breadcrumb-item::before { color: #b0bec9; }
 
-        /* ── Activity Container ── */
+        
         .activity-container {
             border-radius: 14px;
             overflow: hidden;
@@ -110,7 +85,7 @@
             border: 1px solid #dde3ea !important;
         }
 
-        /* ── Module row accent bar ── */
+        
         .module-row {
             background: linear-gradient(90deg, #0f2d45 0%, #143752 100%) !important;
             color: white !important;
@@ -126,13 +101,13 @@
             background: #ff7d00;
         }
 
-        /* ── Kegiatan row ── */
+        
         .kegiatan-row {
             background-color: #e8f3fc !important;
             color: #1a5276 !important;
         }
 
-        /* ── Responsive: hide toggle text on xs ── */
+        
         @media (max-width: 480px) {
             #textToggle { display: none !important; }
             #btnToggleList { padding: 7px 10px; }
@@ -152,10 +127,7 @@
 
 <x-Sidebar :projectId="$projectId ?? null" activeMenu="list" />
 
-<main class="main-content">
-
-    {{-- ── Page Header ── --}}
-    <div class="page-header-wrap">
+<main class="main-content">    <div class="page-header-wrap">
         <div class="page-title-group">
             <h2>Activity Plan</h2>
             <div class="project-subtitle">
@@ -163,17 +135,12 @@
             </div>
         </div>
 
-        <div class="page-actions">
-            {{-- Toggle Button --}}
-            <button id="btnToggleList"
+        <div class="page-actions">            <button id="btnToggleList"
                     class="btn btn-outline-primary fw-bold shadow-sm"
                     title="Toggle Task List">
                 <i class="bi bi-layout-sidebar-reverse" id="iconToggle"></i>
                 <span id="textToggle">Hide List</span>
-            </button>
-
-            {{-- Breadcrumb --}}
-            <nav aria-label="breadcrumb">
+            </button>            <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
                         <a href="/projek"><i class="bi bi-house-door me-1"></i>Project</a>
@@ -182,27 +149,12 @@
                 </ol>
             </nav>
         </div>
-    </div>
-
-    {{-- ── Gantt Chart Container ── --}}
-    <div class="activity-container bg-white">
-        <div class="activity-wrap" id="activityWrap">
-
-            {{-- ════════════════ LEFT: Task List ════════════════ --}}
-            <div class="activity-left border-end" id="activityLeft">
-
-                {{-- Header --}}
-                <div class="activity-left-head">
+    </div>    <div class="activity-container bg-white">
+        <div class="activity-wrap" id="activityWrap">            <div class="activity-left border-end" id="activityLeft">                <div class="activity-left-head">
                     <div class="col-task ps-3">Task Description</div>
                     <div class="col-pic pe-3 text-end">PIC</div>
-                </div>
-
-                {{-- Rows --}}
-                <div class="activity-list">
-                    @foreach($moduls ?? [] as $modIndex => $mod)
-
-                        {{-- Module Row --}}
-                        <div class="row-item module-row bg-dark-blue text-white">
+                </div>                <div class="activity-list">
+                    @foreach($moduls ?? [] as $modIndex => $mod)                        <div class="row-item module-row bg-dark-blue text-white">
                             <div class="d-flex align-items-center h-100 ps-3 fw-bold text-truncate"
                                  style="font-size: 0.82rem; letter-spacing: 0.03em;">
                                 <i class="bi bi-layers-half me-2 opacity-75"></i>
@@ -210,19 +162,13 @@
                             </div>
                         </div>
 
-                        @foreach($mod->kegiatans ?? [] as $kgt)
-
-                            {{-- Kegiatan Row --}}
-                            <div class="row-item kegiatan-row bg-light-blue text-primary">
+                        @foreach($mod->kegiatans ?? [] as $kgt)                            <div class="row-item kegiatan-row bg-light-blue text-primary">
                                 <div class="d-flex align-items-center h-100 ps-3 fw-semibold text-truncate"
                                      style="font-size: 0.82rem;">
                                     <i class="bi bi-chevron-right me-1 opacity-50" style="font-size: 0.65rem;"></i>
                                     {{ $kgt->kgt_nama }}
                                 </div>
-                            </div>
-
-                            {{-- Task Rows --}}
-                            @foreach($kgt->tugas as $t)
+                            </div>                            @foreach($kgt->tugas as $t)
                                 <div class="row-item task-row js-task-click"
                                      data-target="bar-{{ $t->tgs_id }}">
                                     <div class="col-task d-flex align-items-center h-100 ps-4 text-dark gap-1"
@@ -243,35 +189,16 @@
                         @endforeach
                     @endforeach
                 </div>
-            </div>
-            {{-- ════════════════ END LEFT ════════════════ --}}
-
-            {{-- ════════════════ RIGHT: Timeline / Gantt ════════════════ --}}
-            <div class="activity-right">
+            </div>            <div class="activity-right">
                 <div class="timeline-scroll-container" id="timelineScroll">
                     <div class="timeline-content" id="timelineContent"
                          data-pstart="{{ $projek->pjk_tanggal_mulai ?? '' }}"
-                         data-pend="{{ $projek->pjk_tanggal_selesai ?? '' }}">
-
-                        {{-- Timeline Header --}}
-                        <div class="timeline-header">
+                         data-pend="{{ $projek->pjk_tanggal_selesai ?? '' }}">                        <div class="timeline-header">
                             <div class="date-scale" id="dateScale"></div>
-                        </div>
-
-                        {{-- Timeline Body --}}
-                        <div class="timeline-body" id="timelineBody">
-
-                            {{-- Today Marker --}}
-                            <div class="today-marker" id="todayMarker" style="display:none;">
+                        </div>                        <div class="timeline-body" id="timelineBody">                            <div class="today-marker" id="todayMarker" style="display:none;">
                                 <div class="label">Today</div>
                                 <div class="line"></div>
-                            </div>
-
-                            {{-- Timeline Rows --}}
-                            @foreach($moduls ?? [] as $modIndex => $mod)
-
-                                {{-- Module Spacer --}}
-                                <div class="row-item spacer-row module-spacer position-relative row-modul-timeline">
+                            </div>                            @foreach($moduls ?? [] as $modIndex => $mod)                                <div class="row-item spacer-row module-spacer position-relative row-modul-timeline">
                                     <div class="inline-title-collapse text-white fw-bold ms-3"
                                          style="position: sticky; left: 15px; z-index: 10; font-size: 0.82rem; letter-spacing: 0.03em;">
                                         <i class="bi bi-layers-half me-2 opacity-75"></i>
@@ -279,19 +206,13 @@
                                     </div>
                                 </div>
 
-                                @foreach($mod->kegiatans ?? [] as $kgt)
-
-                                    {{-- Kegiatan Spacer --}}
-                                    <div class="row-item spacer-row kegiatan-spacer position-relative row-kegiatan-timeline">
+                                @foreach($mod->kegiatans ?? [] as $kgt)                                    <div class="row-item spacer-row kegiatan-spacer position-relative row-kegiatan-timeline">
                                         <div class="inline-title-collapse text-primary fw-semibold ms-4"
                                              style="position: sticky; left: 15px; z-index: 10; font-size: 0.82rem;">
                                             <i class="bi bi-chevron-right me-1 opacity-50" style="font-size: 0.65rem;"></i>
                                             {{ $kgt->kgt_nama }}
                                         </div>
-                                    </div>
-
-                                    {{-- Task Bars --}}
-                                    @foreach($kgt->tugas as $t)
+                                    </div>                                    @foreach($kgt->tugas as $t)
                                         <div class="row-item timeline-row position-relative"
                                              data-start="{{ $t->tgs_tanggal_mulai }}"
                                              data-end="{{ $t->tgs_tanggal_selesai }}"
@@ -299,18 +220,7 @@
 
                                             <div class="bar-container w-100 position-relative h-100">
                                                 <div class="duration-bar"
-                                                     id="bar-{{ $t->tgs_id }}"
-                                                     data-bs-toggle="tooltip"
-                                                     data-bs-placement="top"
-                                                     data-bs-html="true"
-                                                     data-bs-container="body"
-                                                     title="<b>{{ $t->tgs_nama }}</b><br>
-                                                            <small>
-                                                                <i class='bi bi-calendar-event'></i>&nbsp;
-                                                                {{ \Carbon\Carbon::parse($t->tgs_tanggal_mulai)->format('d M Y') }}
-                                                                &rarr;
-                                                                {{ \Carbon\Carbon::parse($t->tgs_tanggal_selesai)->format('d M Y') }}
-                                                            </small>">
+                                                     id="bar-{{ $t->tgs_id }}">
 
                                                     <div class="progress-fill"></div>
 
@@ -333,33 +243,150 @@
                                 @endforeach
                             @endforeach
 
-                        </div>{{-- end timeline-body --}}
-                    </div>{{-- end timeline-content --}}
-                </div>{{-- end timeline-scroll-container --}}
-            </div>
-            {{-- ════════════════ END RIGHT ════════════════ --}}
-
-        </div>{{-- end activity-wrap --}}
-    </div>{{-- end activity-container --}}
-
+                        </div>                    </div>                </div>            </div>
+        </div>    </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     window.addEventListener('load', function () {
 
-        // ── Init Tooltips ──
-        setTimeout(function () {
-            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
-                new bootstrap.Tooltip(el, { container: 'body', offset: [0, 8] });
-            });
-        }, 500);
+        
+        
+        
+        
+        
+        const popup = document.createElement('div');
+        popup.id = 'tapPopup';
+        popup.style.cssText = [
+            'display:none',
+            'position:fixed',
+            'z-index:999999',
+            'background:#0f2d45',
+            'color:#fff',
+            'border-radius:10px',
+            'padding:10px 14px',
+            'font-size:0.82rem',
+            'font-family:DM Sans,sans-serif',
+            'box-shadow:0 6px 24px rgba(0,0,0,0.35)',
+            'max-width:240px',
+            'pointer-events:none',
+            'line-height:1.5',
+            'border-left:3px solid #ff7d00',
+        ].join(';');
+        document.body.appendChild(popup);
 
-        // ── Collapse / Expand Logic ──
+        let popupTimer = null;
+
+        function showTapPopup(bar, clientX, clientY) {
+            const name     = bar.dataset.taskName  || '';
+            const start    = bar.dataset.taskStart || '';
+            const end      = bar.dataset.taskEnd   || '';
+            const progress = bar.dataset.taskProgress || '0';
+
+            popup.innerHTML =
+                '<div style="font-weight:700;margin-bottom:4px;">' + name + '</div>' +
+                '<div style="font-size:0.75rem;opacity:0.85;">' +
+                    '<i class="bi bi-calendar-event" style="margin-right:4px;"></i>' +
+                    start + ' &rarr; ' + end +
+                '</div>' +
+                '<div style="font-size:0.72rem;margin-top:4px;opacity:0.7;">' +
+                    'Progress: <strong>' + progress + '%</strong>' +
+                '</div>';
+
+            
+            const pw = 240, ph = 80;
+            let left = clientX - pw / 2;
+            let top  = clientY - ph - 14;
+            if (left < 8) left = 8;
+            if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+            if (top < 8) top = clientY + 14;
+
+            popup.style.left    = left + 'px';
+            popup.style.top     = top  + 'px';
+            popup.style.display = 'block';
+
+            clearTimeout(popupTimer);
+            popupTimer = setTimeout(function () {
+                popup.style.display = 'none';
+            }, 3000);
+        }
+
+        
+        function attachBarTapListeners() {
+            document.querySelectorAll('.duration-bar').forEach(function (bar) {
+                var nameEl   = bar.querySelector('.inline-task-collapse .fw-bold');
+                var taskName = nameEl ? nameEl.textContent.trim() : bar.id.replace('bar-', 'Task ');
+
+                bar.dataset.taskName     = taskName;
+                bar.dataset.taskStart    = bar.closest('.timeline-row')
+                    ? bar.closest('.timeline-row').dataset.start
+                        ? formatDate(bar.closest('.timeline-row').dataset.start)
+                        : ''
+                    : '';
+                bar.dataset.taskEnd      = bar.closest('.timeline-row')
+                    ? bar.closest('.timeline-row').dataset.end
+                        ? formatDate(bar.closest('.timeline-row').dataset.end)
+                        : ''
+                    : '';
+                bar.dataset.taskProgress = bar.closest('.timeline-row')
+                    ? (bar.closest('.timeline-row').dataset.progress || '0')
+                    : '0';
+
+                bar.addEventListener('touchstart', function (e) {
+                    e.stopPropagation();
+                    var touch = e.touches[0];
+                    showTapPopup(bar, touch.clientX, touch.clientY);
+                }, { passive: true });
+
+                
+                bar.addEventListener('click', function (e) {
+                    if ('ontouchstart' in window) return; 
+                    showTapPopup(bar, e.clientX, e.clientY);
+                });
+            });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            var d = new Date(dateStr);
+            if (isNaN(d)) return dateStr;
+            var months = ['Jan','Feb','Mar','Apr','May','Jun',
+                          'Jul','Aug','Sep','Oct','Nov','Dec'];
+            return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        }
+
+        
+        document.addEventListener('touchstart', function (e) {
+            if (!e.target.closest('.duration-bar')) {
+                popup.style.display = 'none';
+            }
+        }, { passive: true });
+
+        
+        setTimeout(attachBarTapListeners, 800);
+
+        
+        
+        
         const btnToggle    = document.getElementById('btnToggleList');
         const activityWrap = document.getElementById('activityWrap');
         const iconToggle   = document.getElementById('iconToggle');
         const textToggle   = document.getElementById('textToggle');
+
+        
+        function applyMobileCollapse() {
+            if (window.innerWidth <= 600) {
+                if (!activityWrap.classList.contains('is-collapsed')) {
+                    activityWrap.classList.add('is-collapsed');
+                    if (textToggle) textToggle.innerText = 'Show List';
+                    if (iconToggle) iconToggle.className = 'bi bi-layout-sidebar';
+                    if (btnToggle)  btnToggle.classList.replace('btn-outline-primary', 'btn-primary');
+                }
+            }
+        }
+        applyMobileCollapse();
+        window.addEventListener('resize', applyMobileCollapse);
 
         if (btnToggle) {
             btnToggle.addEventListener('click', function () {

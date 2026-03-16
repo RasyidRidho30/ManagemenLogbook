@@ -19,7 +19,7 @@
 <body>
 
 @include('components.NavbarSearchFilter', [
-    'title'            => 'Project Settings',
+    'title'            => 'Logbook Management',
     'showSearchFilter' => false,
     'userName'         => auth()->user()->name ?? 'User'
 ])

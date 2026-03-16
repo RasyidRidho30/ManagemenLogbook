@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const lastName = document.getElementById("last_name");
     const email = document.getElementById("email");
     const password = document.getElementById("password");
-    // role is fixed to 'user' by the server; we still send it for clarity
     const role = "user";
     const errorEl = document.getElementById("signupError");
 
@@ -67,7 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await res.json();
 
             if (!res.ok) {
-                // Laravel validation returns 422 with errors object
                 if (data.errors) {
                     const firstKey = Object.keys(data.errors)[0];
                     throw new Error(data.errors[firstKey][0]);
