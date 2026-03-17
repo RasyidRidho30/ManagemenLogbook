@@ -31,17 +31,15 @@ return new class extends Migration
                 IF total_progress_baru > 100 THEN SET total_progress_baru = 100; END IF;
 
                 -- Update Header Projek
-                -- Update Header Projek
                 UPDATE projek 
                 SET pjk_persentasi_progress = total_progress_baru,
-                    pjk_status = IF(total_progress_baru = 100, "Completed", pjk_status), 
                     pjk_modified_at = NOW(),
                     pjk_modified_by = "SYSTEM"
                 WHERE pjk_id = id_projek_target;
             END
         ');
 
-        // 2. TRIGGER: Auto-Status "Completed" jika 100% (Before Update)
+        // 2. TRIGGER: Auto-Status "Selesai" jika 100% (Before Update)
         DB::unprepared('
             DROP TRIGGER IF EXISTS trg_update_status_tugas;
             
@@ -49,13 +47,13 @@ return new class extends Migration
             BEFORE UPDATE ON tugas
             FOR EACH ROW
             BEGIN
-                -- Jika user isi 100%, status jadi Completed
+                -- Jika user isi 100%, status jadi Selesai
                 IF NEW.tgs_persentasi_progress = 100 THEN
-                    SET NEW.tgs_status = "Completed";
+                    SET NEW.tgs_status = "Selesai";
                 END IF;
                 
-                -- Jika user set status Completed, progress jadi 100%
-                IF NEW.tgs_status = "Completed" AND OLD.tgs_status != "Completed" THEN
+                -- Jika user set status Selesai, progress jadi 100%
+                IF NEW.tgs_status = "Selesai" AND OLD.tgs_status != "Selesai" THEN
                     SET NEW.tgs_persentasi_progress = 100;
                 END IF;
             END
@@ -103,7 +101,7 @@ return new class extends Migration
                     p.pjk_tanggal_selesai,
                     p.pjk_persentasi_progress as project_progress,
                     COUNT(t.tgs_id) as total_tasks,
-                    SUM(CASE WHEN t.tgs_status = "Completed" OR t.tgs_persentasi_progress = 100 THEN 1 ELSE 0 END) as completed_tasks
+                    SUM(CASE WHEN t.tgs_status = "Selesai" OR t.tgs_persentasi_progress = 100 THEN 1 ELSE 0 END) as completed_tasks
                 FROM projek p
                 LEFT JOIN modul m ON p.pjk_id = m.pjk_id
                 LEFT JOIN kegiatan k ON m.mdl_id = k.mdl_id
