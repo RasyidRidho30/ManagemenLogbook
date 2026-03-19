@@ -139,6 +139,7 @@
                                             data-pic="{{ $log->pic_name }}"
                                             data-start="{{ $log->tgs_tanggal_mulai }}"
                                             data-end="{{ $log->tgs_tanggal_selesai }}"
+                                            data-evidence-link="{{ $log->lbk_evidence_link ?? '' }}"
                                             data-is-today="{{ \Carbon\Carbon::parse($log->lbk_tanggal)->isToday() ? '1' : '0' }}"
                                             title="View Details">
                                         <i class="bi bi-eye"></i>
@@ -216,6 +217,12 @@
                         <input type="number" name="lbk_progress" id="lbk_progress"
                                class="form-control" min="0" max="100" value="0">
                         <span class="input-group-text">%</span>
+                    </div>
+                    <div id="evidenceLinkGroup" class="mt-2 d-none">
+                        <label class="form-label">Evidence Link (Drive)</label>
+                        <input type="url" name="evidence_link" id="evidence_link" class="form-control"
+                               placeholder="https://drive.google.com/..." />
+                        <small class="text-muted">Optional, but recommended when progress reaches 100%.</small>
                     </div>
                 </div>
 
@@ -315,6 +322,13 @@
                     </p>
                 </div>
 
+                <div class="mb-1">
+                    <p class="detail-label">Evidence Link</p>
+                    <p id="detail-evidence" class="detail-value body-text">
+                        <em class="text-muted">No evidence link provided.</em>
+                    </p>
+                </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-warning"
@@ -401,6 +415,13 @@
                                class="form-control"
                                min="0" max="100" value="0">
                         <span class="input-group-text">%</span>
+                    </div>
+
+                    <div class="mt-3 d-none" id="editEvidenceGroup">
+                        <label class="form-label">Evidence Link (Drive)</label>
+                        <input type="url" id="editEvidenceLink" name="evidence_link" class="form-control"
+                               placeholder="https://drive.google.com/..." />
+                        <small class="text-muted">Optional, shown when progress is 100%.</small>
                     </div>
                 </div>
             </div>

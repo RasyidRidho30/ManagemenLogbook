@@ -64,8 +64,9 @@ class LogbookController extends Controller
                     new OA\Property(property: "tgs_id", type: "integer"),
                     new OA\Property(property: "tanggal", type: "string", format: "date"),
                     new OA\Property(property: "deskripsi", type: "string"),
-                    new OA\Property(property: "komentar", type: "string"),
-                    new OA\Property(property: "progress", type: "integer")
+                        new OA\Property(property: "komentar", type: "string"),
+                    new OA\Property(property: "progress", type: "integer"),
+                    new OA\Property(property: "evidence_link", type: "string", format: "uri", description: "Optional link to a Drive file/evidence")
                 ]
             )
         ),
@@ -74,16 +75,18 @@ class LogbookController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tgs_id'   => 'required|exists:tugas,tgs_id',
-            'tanggal'  => 'required|date',
-            'deskripsi'=> 'required',
-            'progress' => 'nullable|integer|min:0|max:100'
+            'tgs_id'        => 'required|exists:tugas,tgs_id',
+            'tanggal'       => 'required|date',
+            'deskripsi'     => 'required',
+            'progress'      => 'nullable|integer|min:0|max:100',
+            'evidence_link' => 'nullable|url'
         ]);
 
         try {
-            $tgsId    = $request->tgs_id;
-            $tanggal  = $request->tanggal;
-            $progress = $request->progress ?? 0;
+            $tgsId        = $request->tgs_id;
+            $tanggal      = $request->tanggal;
+            $progress     = $request->progress ?? 0;
+            $evidenceLink = $request->evidence_link ?? null;
 
             // Rule 3: Cek total progress task ini, tidak boleh sudah >= 100
             $totalProgress = DB::table('logbook')
@@ -115,12 +118,13 @@ class LogbookController extends Controller
                 ], 422);
             }
 
-            DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?)', [
+            DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?, ?)', [
                 $tgsId,
                 $tanggal,
                 $request->deskripsi,
                 $request->komentar ?? '',
-                $progress
+                $progress,
+                $evidenceLink
             ]);
 
             return response()->json(['message' => 'Logbook entry created'], 201);
@@ -143,7 +147,8 @@ class LogbookController extends Controller
                 type: "object",
                 properties: [
                     new OA\Property(property: "lbk_komentar", type: "string", example: "Sudah selesai review"),
-                    new OA\Property(property: "lbk_progress", type: "integer", minimum: 0, maximum: 100, example: 75)
+                    new OA\Property(property: "lbk_progress", type: "integer", minimum: 0, maximum: 100, example: 75),
+                    new OA\Property(property: "evidence_link", type: "string", format: "uri", description: "Link to proof (e.g. Drive) when progress is 100%")
                 ]
             )
         ),
@@ -156,12 +161,14 @@ class LogbookController extends Controller
     public function update($id, Request $request)
     {
         $request->validate([
-            'lbk_komentar' => 'nullable|string',
-            'lbk_progress' => 'nullable|integer|min:0|max:100'
+            'lbk_komentar'      => 'nullable|string',
+            'lbk_progress'      => 'nullable|integer|min:0|max:100',
+            'evidence_link'     => 'nullable|url',
+            'lbk_evidence_link' => 'nullable|url'
         ]);
 
         try {
-            $logbook = DB::select('SELECT lbk_tanggal, lbk_deskripsi, lbk_komentar, lbk_progress, tgs_id FROM logbook WHERE lbk_id = ?', [$id]);
+            $logbook = DB::select('SELECT lbk_tanggal, lbk_deskripsi, lbk_komentar, lbk_progress, lbk_evidence_link, tgs_id FROM logbook WHERE lbk_id = ?', [$id]);
 
             if (empty($logbook)) {
                 return response()->json(['message' => 'Logbook entry not found'], 404);
@@ -195,21 +202,26 @@ class LogbookController extends Controller
 
             $komentar = $request->has('lbk_komentar') ? $request->lbk_komentar : $current->lbk_komentar;
             $progress = $request->has('lbk_progress') ? $request->lbk_progress : $current->lbk_progress;
+            $evidenceLink = $request->filled('evidence_link')
+                ? $request->evidence_link
+                : ($request->filled('lbk_evidence_link') ? $request->lbk_evidence_link : $current->lbk_evidence_link);
 
-            DB::select('CALL sp_update_logbook(?, ?, ?, ?, ?)', [
+            DB::select('CALL sp_update_logbook(?, ?, ?, ?, ?, ?)', [
                 $id,
                 $current->lbk_tanggal,
                 $current->lbk_deskripsi,
                 $komentar ?? '',
-                $progress ?? 0
+                $progress ?? 0,
+                $evidenceLink
             ]);
 
             return response()->json([
                 'message' => 'Logbook entry updated successfully',
                 'data'    => [
-                    'lbk_id'       => (int) $id,
-                    'lbk_komentar' => $komentar,
-                    'lbk_progress' => $progress
+                    'lbk_id'        => (int) $id,
+                    'lbk_komentar'  => $komentar,
+                    'lbk_progress'  => $progress,
+                    'evidence_link' => $evidenceLink
                 ]
             ], 200);
         } catch (\Exception $e) {

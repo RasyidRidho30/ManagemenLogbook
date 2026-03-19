@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 deskripsi: document.getElementById("lbk_deskripsi").value,
                 komentar: document.getElementById("lbk_komentar").value || "",
                 progress: progressValue || 0,
+                evidence_link: document.getElementById("evidence_link")?.value || "",
             };
 
             axios
@@ -100,6 +101,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 });
         });
+    }
+
+    // Show evidence link input only when progress is 100%
+    const evidenceLinkGroup = document.getElementById('evidenceLinkGroup');
+    const progressInputForAdd = document.getElementById('lbk_progress');
+
+    const toggleEvidenceLinkField = () => {
+        if (!evidenceLinkGroup || !progressInputForAdd) return;
+        const val = parseInt(progressInputForAdd.value) || 0;
+        evidenceLinkGroup.classList.toggle('d-none', val < 100);
+    };
+
+    if (progressInputForAdd) {
+        progressInputForAdd.addEventListener('input', toggleEvidenceLinkField);
+        toggleEvidenceLinkField();
     }
 
     if (modalElement) {
@@ -188,16 +204,25 @@ document.addEventListener("DOMContentLoaded", () => {
             komentarEl.textContent = komentar.trim() ? komentar : "-";
             if (!komentar.trim()) komentarEl.classList.add("text-muted");
 
+            const evidenceLink = button.getAttribute("data-evidence-link") || "";
+            const evidenceEl = document.getElementById("detail-evidence");
+            if (evidenceLink) {
+                evidenceEl.innerHTML = `<a href="${evidenceLink}" target="_blank" rel="noreferrer">${evidenceLink}</a>`;
+                evidenceEl.classList.remove('text-muted');
+            } else {
+                evidenceEl.innerHTML = `<em class="text-muted">No evidence link provided.</em>`;
+            }
+
             document.getElementById("lbk_id_edit").value =
                 button.getAttribute("data-lbk-id");
             document.getElementById("komentarEdit").value = komentar;
-
 
             // Rule 1: Tampilkan tombol Edit Progress hanya jika entry hari ini
             const isToday = button.getAttribute('data-is-today') === '1';
             const btnEditProgress = document.getElementById('btnEditProgress');
             if (btnEditProgress) {
                 btnEditProgress.classList.toggle('d-none', !isToday);
+                btnEditProgress.dataset.evidenceLink = evidenceLink;
             }
         });
     }
@@ -233,12 +258,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const progressSlider = document.getElementById('progressSlider');
     const progressInput  = document.getElementById('progressInput');
     const progressLabel  = document.getElementById('progressDisplayLabel');
+    const editEvidenceGroup = document.getElementById('editEvidenceGroup');
+
+    const toggleEditEvidenceField = () => {
+        if (!editEvidenceGroup || !progressInput) return;
+        const val = parseInt(progressInput.value) || 0;
+        editEvidenceGroup.classList.toggle('d-none', val < 100);
+    };
 
     if (progressSlider && progressInput) {
         // Slider → Input
         progressSlider.addEventListener('input', () => {
             progressInput.value    = progressSlider.value;
             progressLabel.textContent = `${progressSlider.value}%`;
+            toggleEditEvidenceField();
         });
 
         // Input → Slider
@@ -248,7 +281,11 @@ document.addEventListener("DOMContentLoaded", () => {
             progressInput.value       = val;
             progressSlider.value      = val;
             progressLabel.textContent = `${val}%`;
+            toggleEditEvidenceField();
         });
+
+        // Ensure initial visibility at load
+        toggleEditEvidenceField();
     }
 
     // ── Isi nilai saat modal Edit Progress dibuka ────────
@@ -265,6 +302,13 @@ document.addEventListener("DOMContentLoaded", () => {
             progressSlider.value       = currentProgress;
             progressInput.value        = currentProgress;
             progressLabel.textContent  = `${currentProgress}%`;
+            toggleEditEvidenceField();
+
+            const editEvidenceLinkInput = document.getElementById('editEvidenceLink');
+            const evidenceLinkValue = document.getElementById('btnEditProgress')?.dataset?.evidenceLink || '';
+            if (editEvidenceLinkInput) {
+                editEvidenceLinkInput.value = evidenceLinkValue;
+            }
         });
     }
 
@@ -276,7 +320,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const lbkId    = document.getElementById('lbk_id_progress').value;
             const progress = parseInt(document.getElementById('progressInput').value) || 0;
 
-            axios.put(`/api/logbook/${lbkId}`, { lbk_progress: progress })
+            const evidenceLink = document.getElementById('editEvidenceLink')?.value || '';
+
+            axios.put(`/api/logbook/${lbkId}`, { lbk_progress: progress, evidence_link: evidenceLink })
                 .then(() => {
                     Swal.fire({
                         icon: 'success',

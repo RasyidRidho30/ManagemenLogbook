@@ -145,6 +145,7 @@ class ProjekViewController extends Controller
                 'logbook.lbk_deskripsi',
                 'logbook.lbk_komentar',
                 'logbook.lbk_progress',
+                'logbook.lbk_evidence_link',
                 'tugas.tgs_nama',
                 'tugas.tgs_kode_prefix',
                 'tugas.tgs_tanggal_mulai',
