@@ -74,31 +74,55 @@ class LogbookController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tgs_id' => 'required|exists:tugas,tgs_id',
-            'tanggal' => 'required|date',
-            'deskripsi' => 'required',
+            'tgs_id'   => 'required|exists:tugas,tgs_id',
+            'tanggal'  => 'required|date',
+            'deskripsi'=> 'required',
             'progress' => 'nullable|integer|min:0|max:100'
         ]);
 
         try {
-            // Check if logbook already exists for this task
-            $existingLogbook = DB::table('logbook')
-                ->where('tgs_id', $request->tgs_id)
+            $tgsId    = $request->tgs_id;
+            $tanggal  = $request->tanggal;
+            $progress = $request->progress ?? 0;
+
+            // Rule 3: Cek total progress task ini, tidak boleh sudah >= 100
+            $totalProgress = DB::table('logbook')
+                ->where('tgs_id', $tgsId)
+                ->sum('lbk_progress');
+
+            if ($totalProgress >= 100) {
+                return response()->json([
+                    'message' => 'Task ini sudah mencapai 100% progress dan tidak bisa ditambah entry baru.'
+                ], 422);
+            }
+
+            // Rule 3: Pastikan total setelah ditambah tidak melebihi 100
+            if (($totalProgress + $progress) > 100) {
+                return response()->json([
+                    'message' => "Progress melebihi batas. Sisa progress yang bisa diinput: " . (100 - $totalProgress) . "%"
+                ], 422);
+            }
+
+            // Rule 1: Cek apakah sudah ada entry untuk task + tanggal yang sama
+            $existingSameDay = DB::table('logbook')
+                ->where('tgs_id', $tgsId)
+                ->whereDate('lbk_tanggal', $tanggal)
                 ->first();
 
-            if ($existingLogbook) {
+            if ($existingSameDay) {
                 return response()->json([
-                    'message' => 'This task already has a logbook entry. Each task can only have one logbook entry.'
+                    'message' => 'Entry untuk task ini di tanggal yang sama sudah ada. Silakan edit entry tersebut.'
                 ], 422);
             }
 
             DB::select('CALL sp_create_logbook(?, ?, ?, ?, ?)', [
-                $request->tgs_id,
-                $request->tanggal,
+                $tgsId,
+                $tanggal,
                 $request->deskripsi,
                 $request->komentar ?? '',
-                $request->progress ?? 0
+                $progress
             ]);
+
             return response()->json(['message' => 'Logbook entry created'], 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
@@ -108,7 +132,7 @@ class LogbookController extends Controller
     #[OA\Put(
         path: "/api/logbook/{id}",
         tags: ["Logbook"],
-        summary: "Update logbook entry (comment)",
+        summary: "Update logbook entry (comment and/or progress)",
         security: [["bearerAuth" => []]],
         parameters: [
             new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
@@ -118,35 +142,76 @@ class LogbookController extends Controller
             content: new OA\JsonContent(
                 type: "object",
                 properties: [
-                    new OA\Property(property: "lbk_komentar", type: "string")
+                    new OA\Property(property: "lbk_komentar", type: "string", example: "Sudah selesai review"),
+                    new OA\Property(property: "lbk_progress", type: "integer", minimum: 0, maximum: 100, example: 75)
                 ]
             )
         ),
-        responses: [new OA\Response(response: 200, description: "Logbook entry updated")]
+        responses: [
+            new OA\Response(response: 200, description: "Logbook entry updated"),
+            new OA\Response(response: 404, description: "Logbook entry not found"),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
     )]
     public function update($id, Request $request)
     {
+        $request->validate([
+            'lbk_komentar' => 'nullable|string',
+            'lbk_progress' => 'nullable|integer|min:0|max:100'
+        ]);
+
         try {
-            // Fetch current logbook data
-            $logbook = DB::select('SELECT lbk_tanggal, lbk_deskripsi, lbk_progress FROM logbook WHERE lbk_id = ?', [$id]);
+            $logbook = DB::select('SELECT lbk_tanggal, lbk_deskripsi, lbk_komentar, lbk_progress, tgs_id FROM logbook WHERE lbk_id = ?', [$id]);
 
             if (empty($logbook)) {
                 return response()->json(['message' => 'Logbook entry not found'], 404);
             }
 
             $current = $logbook[0];
-            $komentar = $request->lbk_komentar ?? '';
 
-            // Call sp_update_logbook with all 5 parameters
+            // Rule 1: Hanya boleh edit jika tanggal entry = hari ini
+            if ($request->has('lbk_progress')) {
+                $today       = now()->toDateString();
+                $entryDate   = \Carbon\Carbon::parse($current->lbk_tanggal)->toDateString();
+
+                if ($entryDate !== $today) {
+                    return response()->json([
+                        'message' => 'Progress hanya bisa diedit pada hari yang sama dengan tanggal entry.'
+                    ], 422);
+                }
+
+                // Rule 3: Hitung total progress task ini DILUAR entry yang sedang diedit
+                $totalOther = DB::table('logbook')
+                    ->where('tgs_id', $current->tgs_id)
+                    ->where('lbk_id', '!=', $id)
+                    ->sum('lbk_progress');
+
+                if (($totalOther + $request->lbk_progress) > 100) {
+                    return response()->json([
+                        'message' => "Total progress task melebihi 100%. Maksimal yang bisa diinput: " . (100 - $totalOther) . "%"
+                    ], 422);
+                }
+            }
+
+            $komentar = $request->has('lbk_komentar') ? $request->lbk_komentar : $current->lbk_komentar;
+            $progress = $request->has('lbk_progress') ? $request->lbk_progress : $current->lbk_progress;
+
             DB::select('CALL sp_update_logbook(?, ?, ?, ?, ?)', [
                 $id,
                 $current->lbk_tanggal,
                 $current->lbk_deskripsi,
-                $komentar,
-                $current->lbk_progress
+                $komentar ?? '',
+                $progress ?? 0
             ]);
 
-            return response()->json(['message' => 'Comment updated successfully'], 200);
+            return response()->json([
+                'message' => 'Logbook entry updated successfully',
+                'data'    => [
+                    'lbk_id'       => (int) $id,
+                    'lbk_komentar' => $komentar,
+                    'lbk_progress' => $progress
+                ]
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
@@ -238,6 +303,41 @@ class LogbookController extends Controller
         return response()->json([
             'message' => 'Success',
             'data' => $logbooks
+        ]);
+    }
+
+
+
+
+    #[OA\Get(
+        path: "/api/logbook/task-progress/{tgsId}",
+        tags: ["Logbook"],
+        summary: "Get total progress & today entry for a task",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(name: "tgsId", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+        ],
+        responses: [new OA\Response(response: 200, description: "Task progress info")]
+    )]
+    public function taskProgress($tgsId)
+    {
+        $total = DB::table('logbook')
+            ->where('tgs_id', $tgsId)
+            ->sum('lbk_progress');
+
+        $todayEntry = DB::table('logbook')
+            ->where('tgs_id', $tgsId)
+            ->whereDate('lbk_tanggal', now()->toDateString())
+            ->first();
+
+        return response()->json([
+            'tgs_id'         => (int) $tgsId,
+            'total_progress' => (int) $total,
+            'is_completed'   => $total >= 100,
+            'today_entry'    => $todayEntry ? [
+                'lbk_id'       => $todayEntry->lbk_id,
+                'lbk_progress' => $todayEntry->lbk_progress,
+            ] : null
         ]);
     }
 }

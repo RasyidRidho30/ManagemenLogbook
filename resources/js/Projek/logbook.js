@@ -9,17 +9,23 @@ axios.defaults.headers.common["Accept"] = "application/json";
 let usedTaskIds = [];
 
 const updateUsedTaskIds = async () => {
-    const projectId = window.location.pathname.split("/")[2];
+    const projectId = window.location.pathname.split('/')[2];
     try {
         const res = await axios.get(`/api/projek/${projectId}/logbook`);
         const existingLogbooks = res.data.data || [];
-        usedTaskIds = existingLogbooks.map((log) =>
-            parseInt(log.id_tugas || log.tgs_id),
-        );
-        return usedTaskIds;
+
+        const today = new Date().toISOString().split('T')[0];
+
+        // Task yang sudah punya entry hari ini (tidak bisa add baru, hanya edit)
+        const todayTaskIds = existingLogbooks
+            .filter(log => log.lbk_tanggal?.split('T')[0] === today || log.lbk_tanggal === today)
+            .map(log => parseInt(log.tgs_id));
+
+        usedTaskIds = todayTaskIds;
+        return { existingLogbooks, todayTaskIds };
     } catch (err) {
         console.error(err);
-        return [];
+        return { existingLogbooks: [], todayTaskIds: [] };
     }
 };
 
@@ -97,29 +103,54 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (modalElement) {
-        modalElement.addEventListener("show.bs.modal", () => {
+        modalElement.addEventListener('show.bs.modal', async () => {
             formAdd?.reset();
 
-            updateUsedTaskIds().then(() => {
-                const tgsSelect = document.getElementById("tgs_id");
-                const options = tgsSelect.querySelectorAll("option");
-                const LOG_TAG = "[ALREADY LOGGED]";
+            const projectId = window.location.pathname.split('/')[2];
+            const res = await axios.get(`/api/projek/${projectId}/logbook`);
+            const existingLogbooks = res.data.data || [];
+            const today = new Date().toISOString().split('T')[0];
 
-                options.forEach((option) => {
-                    const isUsed = usedTaskIds.includes(parseInt(option.value));
-                    option.disabled = isUsed;
+            // Hitung total progress per task
+            const progressMap = {};
+            existingLogbooks.forEach(log => {
+                const id = parseInt(log.tgs_id);
+                progressMap[id] = (progressMap[id] || 0) + parseInt(log.lbk_progress || 0);
+            });
 
-                    if (isUsed) {
-                        if (!option.textContent.includes(LOG_TAG)) {
-                            option.textContent = `${LOG_TAG} ${option.textContent}`;
-                        }
-                    } else {
-                        option.textContent = option.textContent.replace(
-                            `${LOG_TAG} `,
-                            "",
-                        );
-                    }
-                });
+            // Task yang sudah ada entry hari ini
+            const todayTaskIds = existingLogbooks
+                .filter(log => (log.lbk_tanggal?.split('T')[0] ?? log.lbk_tanggal) === today)
+                .map(log => parseInt(log.tgs_id));
+
+            usedTaskIds = todayTaskIds;
+
+            const tgsSelect = document.getElementById('tgs_id');
+            const options   = tgsSelect.querySelectorAll('option');
+
+            options.forEach(option => {
+                const id    = parseInt(option.value);
+                const total = progressMap[id] || 0;
+
+                // Hapus label lama dulu
+                option.textContent = option.textContent
+                    .replace(/\[ALREADY LOGGED\] /g, '')
+                    .replace(/\[COMPLETED\] /g, '');
+                option.disabled = false;
+                option.style.color = '';
+
+                if (!id) return; // skip placeholder
+
+                if (total >= 100) {
+                    // Rule 3: Task sudah 100%, kunci permanen
+                    option.disabled = true;
+                    option.textContent = `[COMPLETED] ${option.textContent}`;
+                    option.style.color = '#aaa';
+                } else if (todayTaskIds.includes(id)) {
+                    // Rule 1: Sudah ada entry hari ini, tidak bisa add baru
+                    option.disabled = true;
+                    option.textContent = `[ALREADY LOGGED] ${option.textContent}`;
+                }
             });
         });
     }
@@ -160,6 +191,14 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("lbk_id_edit").value =
                 button.getAttribute("data-lbk-id");
             document.getElementById("komentarEdit").value = komentar;
+
+
+            // Rule 1: Tampilkan tombol Edit Progress hanya jika entry hari ini
+            const isToday = button.getAttribute('data-is-today') === '1';
+            const btnEditProgress = document.getElementById('btnEditProgress');
+            if (btnEditProgress) {
+                btnEditProgress.classList.toggle('d-none', !isToday);
+            }
         });
     }
 
@@ -186,6 +225,73 @@ document.addEventListener("DOMContentLoaded", () => {
                         "Failed",
                         err.response?.data?.message || "An error occurred",
                         "error",
+                    );
+                });
+        });
+    }
+    // ── Sync slider & input number ──────────────────────
+    const progressSlider = document.getElementById('progressSlider');
+    const progressInput  = document.getElementById('progressInput');
+    const progressLabel  = document.getElementById('progressDisplayLabel');
+
+    if (progressSlider && progressInput) {
+        // Slider → Input
+        progressSlider.addEventListener('input', () => {
+            progressInput.value    = progressSlider.value;
+            progressLabel.textContent = `${progressSlider.value}%`;
+        });
+
+        // Input → Slider
+        progressInput.addEventListener('input', () => {
+            let val = parseInt(progressInput.value) || 0;
+            val = Math.min(100, Math.max(0, val)); // clamp 0-100
+            progressInput.value       = val;
+            progressSlider.value      = val;
+            progressLabel.textContent = `${val}%`;
+        });
+    }
+
+    // ── Isi nilai saat modal Edit Progress dibuka ────────
+    const editProgressModal = document.getElementById('modalEditProgress');
+    if (editProgressModal) {
+        editProgressModal.addEventListener('show.bs.modal', () => {
+            // Ambil nilai dari modal Detail yang sudah terisi sebelumnya
+            const currentProgress = parseInt(
+                document.getElementById('detail-progress')?.textContent ?? '0'
+            ) || 0;
+            const lbkId = document.getElementById('lbk_id_edit').value;
+
+            document.getElementById('lbk_id_progress').value = lbkId;
+            progressSlider.value       = currentProgress;
+            progressInput.value        = currentProgress;
+            progressLabel.textContent  = `${currentProgress}%`;
+        });
+    }
+
+    // ── Submit Edit Progress ─────────────────────────────
+    const formEditProgress = document.getElementById('formEditProgress');
+    if (formEditProgress) {
+        formEditProgress.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const lbkId    = document.getElementById('lbk_id_progress').value;
+            const progress = parseInt(document.getElementById('progressInput').value) || 0;
+
+            axios.put(`/api/logbook/${lbkId}`, { lbk_progress: progress })
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Progress updated successfully',
+                        showConfirmButton: false,
+                        timer: 1500,
+                    }).then(() => location.reload());
+                })
+                .catch((err) => {
+                    // Tampilkan pesan error dari backend (termasuk sisa progress)
+                    Swal.fire(
+                        'Failed',
+                        err.response?.data?.message || 'An error occurred',
+                        'error'
                     );
                 });
         });

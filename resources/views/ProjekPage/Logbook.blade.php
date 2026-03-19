@@ -124,6 +124,7 @@
                                     </small>
                                 </td>
                                 <td>
+                                    {{-- Tombol View Detail --}}
                                     <button type="button"
                                             class="btn btn-sm btn-dark"
                                             data-bs-toggle="modal"
@@ -138,6 +139,7 @@
                                             data-pic="{{ $log->pic_name }}"
                                             data-start="{{ $log->tgs_tanggal_mulai }}"
                                             data-end="{{ $log->tgs_tanggal_selesai }}"
+                                            data-is-today="{{ \Carbon\Carbon::parse($log->lbk_tanggal)->isToday() ? '1' : '0' }}"
                                             title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </button>
@@ -321,6 +323,14 @@
                         data-bs-target="#modalEditComment">
                     <i class="bi bi-pencil me-2"></i>Add / Edit Comment
                 </button>
+
+                {{-- Hanya muncul jika entry adalah hari ini --}}
+                <button type="button" class="btn btn-primary d-none"
+                        id="btnEditProgress"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalEditProgress">
+                    <i class="bi bi-bar-chart-line me-2"></i>Edit Progress
+                </button>
             </div>
         </div>
     </div>
@@ -350,6 +360,54 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check2-circle me-2"></i>Save Comment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{{-- ══════════════════════════════════════════════════
+     MODAL: Edit Progress
+══════════════════════════════════════════════════ --}}
+<div class="modal fade" id="modalEditProgress" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form id="formEditProgress" class="modal-content">
+            <div class="modal-header card-header-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-bar-chart-line me-2 opacity-75"></i>Edit Progress
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="lbk_id_progress" name="lbk_id">
+
+                <div class="mb-2">
+                    <label class="form-label d-flex justify-content-between">
+                        <span>Progress</span>
+                        <span class="fw-bold text-primary" id="progressDisplayLabel">0%</span>
+                    </label>
+
+                    {{-- Slider --}}
+                    <input type="range"
+                           id="progressSlider"
+                           class="form-range mb-2"
+                           min="0" max="100" step="1" value="0">
+
+                    {{-- Input number --}}
+                    <div class="input-group">
+                        <input type="number"
+                               id="progressInput"
+                               class="form-control"
+                               min="0" max="100" value="0">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer d-flex gap-2 justify-content-end">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2-circle me-2"></i>Save Progress
                 </button>
             </div>
         </form>

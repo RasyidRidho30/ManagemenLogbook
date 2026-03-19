@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logbook', [LogbookController::class, 'store']);
     Route::put('logbook/{id}', [LogbookController::class, 'update']);
     Route::get('projek/{id}/logbook', [LogbookController::class, 'getByProject']);
+    Route::get('logbook/task-progress/{tgsId}', [LogbookController::class, 'taskProgress']);
 
 
     // --- PROJEK SPECIFIC LOGIC (DASHBOARD) ---
