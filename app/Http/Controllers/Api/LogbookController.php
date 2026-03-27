@@ -281,13 +281,19 @@ class LogbookController extends Controller
             ->leftJoin('users', 'tugas.usr_id', '=', 'users.usr_id')
             ->where('modul.pjk_id', $id)
             ->select(
-                'logbook.*',
-                'tugas.tgs_nama',
-                'tugas.tgs_kode_prefix',
-                'tugas.tgs_tanggal_mulai',   // Tambahkan ini agar JS tidak error (undefined)
-                'tugas.tgs_tanggal_selesai', // Tambahkan ini agar JS tidak error (undefined)
-                DB::raw("CONCAT(users.usr_first_name, ' ', users.usr_last_name) as pic_name")
-            );
+    'logbook.lbk_id',
+    'logbook.tgs_id',        // ← TAMBAH INI eksplisit
+    'logbook.lbk_tanggal',
+    'logbook.lbk_deskripsi',
+    'logbook.lbk_komentar',
+    'logbook.lbk_progress',
+    'logbook.lbk_evidence_link',
+    'tugas.tgs_nama',
+    'tugas.tgs_kode_prefix',
+    'tugas.tgs_tanggal_mulai',
+    'tugas.tgs_tanggal_selesai',
+    DB::raw("CONCAT(users.usr_first_name, ' ', users.usr_last_name) as pic_name")
+);
 
         // --- FILTER LOGIC ---
 
@@ -352,4 +358,41 @@ class LogbookController extends Controller
             ] : null
         ]);
     }
+
+
+
+
+
+
+
+    #[OA\Get(
+    path: "/api/logbook/task-progress-by-lbk/{lbkId}",
+    tags: ["Logbook"],
+    summary: "Get total progress task by logbook ID",
+    security: [["bearerAuth" => []]],
+    parameters: [
+        new OA\Parameter(name: "lbkId", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [new OA\Response(response: 200, description: "Task progress info")]
+)]
+public function taskProgressByLbk($lbkId)
+{
+    $logbook = DB::table('logbook')->where('lbk_id', $lbkId)->first();
+
+    if (!$logbook) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
+
+    $totalProgress = DB::table('logbook')
+        ->where('tgs_id', $logbook->tgs_id)
+        ->sum('lbk_progress');
+
+    return response()->json([
+        'lbk_id'                 => (int) $lbkId,
+        'tgs_id'                 => (int) $logbook->tgs_id,
+        'total_progress'         => (int) $totalProgress,
+        'current_entry_progress' => (int) $logbook->lbk_progress,
+        'is_completed'           => $totalProgress >= 100,
+    ]);
+}
 }

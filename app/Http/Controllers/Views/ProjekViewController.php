@@ -141,6 +141,7 @@ class ProjekViewController extends Controller
             ->where('modul.pjk_id', $id)
             ->select(
                 'logbook.lbk_id',
+                'logbook.tgs_id',
                 'logbook.lbk_tanggal',
                 'logbook.lbk_deskripsi',
                 'logbook.lbk_komentar',

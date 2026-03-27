@@ -130,6 +130,7 @@
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalDetailLogbook"
                                             data-lbk-id="{{ $log->lbk_id }}"
+                                            data-tgs-id="{{ $log->tgs_id }}"
                                             data-tanggal="{{ $log->lbk_tanggal }}"
                                             data-task="{{ $log->tgs_nama }}"
                                             data-kode="{{ $log->tgs_kode_prefix }}"
