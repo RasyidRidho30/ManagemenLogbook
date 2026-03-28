@@ -161,10 +161,15 @@
                                         <td class="text-center" style="font-size: 0.82rem; font-weight: 600;">
                                             {{ $tgs->tgs_bobot }}
                                         </td>
+                                        @php
+                                            $displayProgress = $tgs->logbook_progress ?? ($tgs->tgs_persentase_progress ?? $tgs->tgs_persentasi_progress ?? 0);
+                                            $displayStatus = $displayProgress >= 100 ? 'Completed' : ($tgs->tgs_status ?? 'Pending');
+                                            $badgeClass = $displayProgress >= 100 ? 'badge bg-success' : 'badge bg-secondary';
+                                        @endphp
                                         <td class="text-center">
-                                            <span class="{{ $tgs->tgs_status == 'Completed' ? 'badge bg-success' : 'badge bg-secondary' }}">
-                                                {{ number_format($tgs->tgs_persentase_progress ?? $tgs->tgs_persentasi_progress, 0) }}%
-                                                {{ $tgs->tgs_status }}
+                                            <span class="{{ $badgeClass }}">
+                                                {{ number_format($displayProgress, 0) }}%
+                                                {{ $displayStatus }}
                                             </span>
                                         </td>
                                         <td class="text-muted small">{{ $tgs->tgs_kode_prefix }}</td>
@@ -353,11 +358,11 @@
                         <label class="form-label">Weight</label>
                         <input type="number" id="edit_bobot" class="form-control" min="1" max="100" required>
                     </div>
-                    <div class="col-md-2">
+                    <!-- <div class="col-md-2">
                         <label class="form-label">Progress (%)</label>
                         <input type="number" id="edit_progress" class="form-control" min="0" max="100" required>
-                    </div>
-                    <div class="col-md-2">
+                    </div> -->
+                    <div class="col-md-4">
                         <label class="form-label">End Date</label>
                         <input type="date" id="edit_tgl_selesai" class="form-control" required>
                         <small class="text-muted d-block mt-1">Within project timeline</small>

@@ -171,9 +171,9 @@ window.openModalEditTugas = (tgsId) => {
             document.getElementById("edit_bobot").value = tgs.bobot;
             document.getElementById("edit_tgl_selesai").value =
                 tgs.tanggal_selesai;
-            document.getElementById("edit_progress").value = Math.round(
-                tgs.persentase_progress,
-            );
+            // document.getElementById("edit_progress").value = Math.round(
+            //     tgs.persentase_progress,
+            // );
 
             const selectEditPic = document.getElementById("edit_usr_id");
             selectEditPic.innerHTML = '<option value="">Select PIC...</option>';
@@ -312,8 +312,8 @@ document.addEventListener("DOMContentLoaded", () => {
                           usr_id: document.getElementById("edit_usr_id").value,
                           tgl_selesai:
                               document.getElementById("edit_tgl_selesai").value,
-                          progress:
-                              document.getElementById("edit_progress").value,
+                          //   progress:
+                          //       document.getElementById("edit_progress").value,
                       }
                     : Object.fromEntries(new FormData(this));
 

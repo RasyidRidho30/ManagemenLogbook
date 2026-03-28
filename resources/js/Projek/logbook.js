@@ -6,26 +6,43 @@ if (apiToken) {
 }
 axios.defaults.headers.common["Accept"] = "application/json";
 
-let usedTaskIds = [];
+// ── State global ────────────────────────────────────
+let usedTaskIds = [];      // tgs_id yang sudah di-log HARI INI
+let completedTaskIds = []; // tgs_id yang progressnya sudah 100%
 
+// ── Helper: ambil data logbook project & update state ──
 const updateUsedTaskIds = async () => {
     const projectId = window.location.pathname.split("/")[2];
     try {
         const res = await axios.get(`/api/projek/${projectId}/logbook`);
         const existingLogbooks = res.data.data || [];
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toLocaleDateString("en-CA");
+
+        // Progress kumulatif per task
+        const progressMap = {};
+        existingLogbooks.forEach((log) => {
+            const id = parseInt(log.tgs_id);
+            progressMap[id] = (progressMap[id] || 0) + parseInt(log.lbk_progress || 0);
+        });
+
+        // Task yang sudah complete (total >= 100)
+        completedTaskIds = Object.entries(progressMap)
+            .filter(([, total]) => total >= 100)
+            .map(([id]) => parseInt(id));
+
+        // Task yang sudah di-log hari ini
         const todayTaskIds = existingLogbooks
-            .filter(
-                (log) =>
-                    log.lbk_tanggal?.split("T")[0] === today ||
-                    log.lbk_tanggal === today,
-            )
+            .filter((log) => {
+                const logDate = log.lbk_tanggal?.split("T")[0] ?? log.lbk_tanggal;
+                return logDate === today;
+            })
             .map((log) => parseInt(log.tgs_id));
+
         usedTaskIds = todayTaskIds;
-        return { existingLogbooks, todayTaskIds };
+        return { existingLogbooks, todayTaskIds, progressMap };
     } catch (err) {
         console.error(err);
-        return { existingLogbooks: [], todayTaskIds: [] };
+        return { existingLogbooks: [], todayTaskIds: [], progressMap: {} };
     }
 };
 
@@ -40,21 +57,21 @@ const formatDate = (dateStr) => {
 
 document.addEventListener("DOMContentLoaded", () => {
     // ── Elemen ──────────────────────────────────────────
-    const formAdd = document.getElementById("formAddLogbook");
-    const modalElement = document.getElementById("modalAddLogbook");
-    const detailModal = document.getElementById("modalDetailLogbook");
-    const formEditComment = document.getElementById("formEditComment");
-    const formEditProgress = document.getElementById("formEditProgress");
+    const formAdd           = document.getElementById("formAddLogbook");
+    const modalElement      = document.getElementById("modalAddLogbook");
+    const detailModal       = document.getElementById("modalDetailLogbook");
+    const formEditComment   = document.getElementById("formEditComment");
+    const formEditProgress  = document.getElementById("formEditProgress");
     const editProgressModal = document.getElementById("modalEditProgress");
-    const progressSlider = document.getElementById("progressSlider");
-    const progressInput = document.getElementById("progressInput");
-    const progressLabel = document.getElementById("progressDisplayLabel");
+    const progressSlider    = document.getElementById("progressSlider");
+    const progressInput     = document.getElementById("progressInput");
+    const progressLabel     = document.getElementById("progressDisplayLabel");
     const editEvidenceGroup = document.getElementById("editEvidenceGroup");
-    const editEvidenceLink = document.getElementById("editEvidenceLink");
+    const editEvidenceLink  = document.getElementById("editEvidenceLink");
 
     // ── State untuk Edit Progress ────────────────────────
-    let progressOutsideEntry = 0;
-    let maxProgressAllowed = 100;
+    let progressOutsideEntry  = 0;
+    let maxProgressAllowed    = 100;
     let progressWaitingEvidence = false;
 
     // ── Helper: cek evidence untuk modal Add ────────────
@@ -89,30 +106,88 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
+    // ── Add Modal: buka — fetch fresh data & update dropdown ──
+    if (modalElement) {
+        modalElement.addEventListener("show.bs.modal", async () => {
+            formAdd?.reset();
+
+            // Disable submit sementara sambil loading
+            const submitBtn = formAdd?.querySelector("button[type='submit']");
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+            }
+
+            const { todayTaskIds, progressMap } = await updateUsedTaskIds();
+
+            document
+                .getElementById("tgs_id")
+                ?.querySelectorAll("option")
+                .forEach((option) => {
+                    const id = parseInt(option.value);
+
+                    // Reset dulu
+                    option.textContent = option.textContent
+                        .replace(/\[ALREADY LOGGED\] /g, "")
+                        .replace(/\[COMPLETED\] /g, "");
+                    option.disabled = false;
+                    option.style.color = "";
+
+                    if (!id) return;
+
+                    const total = progressMap[id] || 0;
+
+                    if (total >= 100) {
+                        // Task sudah selesai — tidak bisa entry lagi
+                        option.disabled = true;
+                        option.textContent = `[COMPLETED] ${option.textContent}`;
+                        option.style.color = "#aaa";
+                    } else if (todayTaskIds.includes(id)) {
+                        // Sudah di-log hari ini — tidak bisa entry lagi hari ini
+                        option.disabled = true;
+                        option.textContent = `[ALREADY LOGGED] ${option.textContent}`;
+                        option.style.color = "#aaa";
+                    }
+                });
+
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Save Entry';
+            }
+        });
+    }
+
     // ── Form Add Submit ──────────────────────────────────
     if (formAdd) {
-        formAdd.addEventListener("submit", (e) => {
+        formAdd.addEventListener("submit", async (e) => {
             e.preventDefault();
+
             const tgsId = document.getElementById("tgs_id").value;
             const tgsSelect = document.getElementById("tgs_id");
             const selectedOption = tgsSelect.options[tgsSelect.selectedIndex];
             const progressValue = document.getElementById("lbk_progress").value;
 
             if (!tgsId) {
+                Swal.fire("Validation Error", "Please select a task first", "warning");
+                return;
+            }
+
+            // Re-fetch sebelum submit untuk pastikan data fresh
+            await updateUsedTaskIds();
+
+            if (completedTaskIds.includes(parseInt(tgsId))) {
                 Swal.fire(
-                    "Validation Error",
-                    "Please select a task first",
+                    "Task Completed",
+                    "This task has already reached 100% progress. No new entry allowed.",
                     "warning",
                 );
                 return;
             }
-            if (
-                selectedOption.disabled ||
-                usedTaskIds.includes(parseInt(tgsId))
-            ) {
+
+            if (selectedOption.disabled || usedTaskIds.includes(parseInt(tgsId))) {
                 Swal.fire(
-                    "Task Already Logged",
-                    "This task already has a logbook entry.",
+                    "Already Logged Today",
+                    "This task already has a logbook entry for today. You can edit the existing entry instead.",
                     "warning",
                 );
                 return;
@@ -120,14 +195,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             axios
                 .post("/api/logbook", {
-                    tgs_id: tgsId,
-                    tanggal: document.getElementById("lbk_tanggal").value,
-                    deskripsi: document.getElementById("lbk_deskripsi").value,
-                    komentar:
-                        document.getElementById("lbk_komentar").value || "",
-                    progress: progressValue || 0,
-                    evidence_link:
-                        document.getElementById("evidence_link")?.value || "",
+                    tgs_id:        tgsId,
+                    tanggal:       document.getElementById("lbk_tanggal").value,
+                    deskripsi:     document.getElementById("lbk_deskripsi").value,
+                    komentar:      document.getElementById("lbk_komentar").value || "",
+                    progress:      progressValue || 0,
+                    evidence_link: document.getElementById("evidence_link")?.value || "",
                 })
                 .then(() => {
                     Swal.fire({
@@ -147,65 +220,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ── Add Modal: load task status ──────────────────────
-    if (modalElement) {
-        modalElement.addEventListener("show.bs.modal", async () => {
-            formAdd?.reset();
-            const projectId = window.location.pathname.split("/")[2];
-            const res = await axios.get(`/api/projek/${projectId}/logbook`);
-            const existingLogbooks = res.data.data || [];
-            const today = new Date().toISOString().split("T")[0];
-
-            const progressMap = {};
-            existingLogbooks.forEach((log) => {
-                const id = parseInt(log.tgs_id);
-                progressMap[id] =
-                    (progressMap[id] || 0) + parseInt(log.lbk_progress || 0);
-            });
-
-            const todayTaskIds = existingLogbooks
-                .filter(
-                    (log) =>
-                        (log.lbk_tanggal?.split("T")[0] ?? log.lbk_tanggal) ===
-                        today,
-                )
-                .map((log) => parseInt(log.tgs_id));
-
-            usedTaskIds = todayTaskIds;
-
-            document
-                .getElementById("tgs_id")
-                ?.querySelectorAll("option")
-                .forEach((option) => {
-                    const id = parseInt(option.value);
-                    const total = progressMap[id] || 0;
-
-                    option.textContent = option.textContent
-                        .replace(/\[ALREADY LOGGED\] /g, "")
-                        .replace(/\[COMPLETED\] /g, "");
-                    option.disabled = false;
-                    option.style.color = "";
-
-                    if (!id) return;
-
-                    if (total >= 100) {
-                        option.disabled = true;
-                        option.textContent = `[COMPLETED] ${option.textContent}`;
-                        option.style.color = "#aaa";
-                    } else if (todayTaskIds.includes(id)) {
-                        option.disabled = true;
-                        option.textContent = `[ALREADY LOGGED] ${option.textContent}`;
-                    }
-                });
-        });
-    }
-
     // ── Detail Modal ─────────────────────────────────────
     if (detailModal) {
         detailModal.addEventListener("show.bs.modal", (event) => {
-            const button = event.relatedTarget;
+            const button   = event.relatedTarget;
             const progress = button.getAttribute("data-progress") || 0;
             const komentar = button.getAttribute("data-komentar") || "";
+            const isToday  = button.getAttribute("data-is-today") === "1";
 
             document.getElementById("detail-tanggal").textContent = formatDate(
                 button.getAttribute("data-tanggal"),
@@ -234,9 +255,8 @@ document.addEventListener("DOMContentLoaded", () => {
             komentarEl.textContent = komentar.trim() ? komentar : "-";
             komentarEl.classList.toggle("text-muted", !komentar.trim());
 
-            const evidenceLink =
-                button.getAttribute("data-evidence-link") || "";
-            const evidenceEl = document.getElementById("detail-evidence");
+            const evidenceLink = button.getAttribute("data-evidence-link") || "";
+            const evidenceEl   = document.getElementById("detail-evidence");
             if (evidenceLink) {
                 evidenceEl.innerHTML = `<a href="${evidenceLink}" target="_blank" rel="noreferrer">${evidenceLink}</a>`;
                 evidenceEl.classList.remove("text-muted");
@@ -248,12 +268,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 button.getAttribute("data-lbk-id");
             document.getElementById("komentarEdit").value = komentar;
 
-            const isToday = button.getAttribute("data-is-today") === "1";
+            // ── Tombol Edit Progress: hanya muncul jika entry hari ini ──
             const btnEditProgress = document.getElementById("btnEditProgress");
             if (btnEditProgress) {
                 btnEditProgress.classList.toggle("d-none", !isToday);
                 btnEditProgress.dataset.evidenceLink = evidenceLink;
             }
+
+            // ── Tombol Edit Comment: selalu muncul (boleh edit kapan saja) ──
+            // Tidak perlu diubah, sudah selalu tampil di HTML.
         });
     }
 
@@ -261,9 +284,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formEditComment) {
         formEditComment.addEventListener("submit", (e) => {
             e.preventDefault();
-            const lbkId = document.getElementById("lbk_id_edit").value;
-            const komentar =
-                document.getElementById("komentarEdit").value || "";
+            const lbkId   = document.getElementById("lbk_id_edit").value;
+            const komentar = document.getElementById("komentarEdit").value || "";
 
             axios
                 .put(`/api/logbook/${lbkId}`, { lbk_komentar: komentar })
@@ -286,10 +308,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ── Slider sync — TANPA API call ────────────────────
+    // ── Slider sync ─────────────────────────────────────
     if (progressSlider && progressInput) {
         progressSlider.addEventListener("input", () => {
-            progressInput.value = progressSlider.value;
+            progressInput.value   = progressSlider.value;
             progressLabel.textContent = `${progressSlider.value}%`;
             const total = progressOutsideEntry + parseInt(progressSlider.value);
             editEvidenceGroup?.classList.toggle("d-none", total < 100);
@@ -300,38 +322,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 maxProgressAllowed,
                 Math.max(0, parseInt(progressInput.value) || 0),
             );
-            progressInput.value = val;
-            progressSlider.value = val;
+            progressInput.value       = val;
+            progressSlider.value      = val;
             progressLabel.textContent = `${val}%`;
             const total = progressOutsideEntry + val;
             editEvidenceGroup?.classList.toggle("d-none", total < 100);
         });
     }
 
-    // ── Edit Progress Modal: buka — fetch 1x ────────────
+    // ── Edit Progress Modal: buka ────────────────────────
     if (editProgressModal) {
         editProgressModal.addEventListener("show.bs.modal", async () => {
             const currentProgress =
                 parseInt(
-                    document.getElementById("detail-progress")?.textContent ??
-                        "0",
+                    document.getElementById("detail-progress")?.textContent ?? "0",
                 ) || 0;
             const lbkId = document.getElementById("lbk_id_edit").value;
 
             document.getElementById("lbk_id_progress").value = lbkId;
-            progressSlider.value = currentProgress;
-            progressInput.value = currentProgress;
+            progressSlider.value      = currentProgress;
+            progressInput.value       = currentProgress;
             progressLabel.textContent = `${currentProgress}%`;
             editEvidenceGroup?.classList.add("d-none");
             progressWaitingEvidence = false;
 
-            // Reset tombol
-            const saveBtn = formEditProgress?.querySelector(
-                "button[type='submit']",
-            );
+            const saveBtn = formEditProgress?.querySelector("button[type='submit']");
             if (saveBtn)
-                saveBtn.innerHTML =
-                    '<i class="bi bi-check2-circle me-2"></i>Save Progress';
+                saveBtn.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Save Progress';
 
             try {
                 const res = await axios.get(
@@ -339,37 +356,33 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
                 const { total_progress, current_entry_progress } = res.data;
                 progressOutsideEntry = total_progress - current_entry_progress;
-                maxProgressAllowed = 100 - progressOutsideEntry;
+                maxProgressAllowed   = 100 - progressOutsideEntry;
 
                 progressSlider.max = maxProgressAllowed;
-                progressInput.max = maxProgressAllowed;
+                progressInput.max  = maxProgressAllowed;
 
-                // Jika sudah complete dari sebelumnya, langsung tampilkan evidence
                 if (progressOutsideEntry + currentProgress >= 100) {
                     editEvidenceGroup?.classList.remove("d-none");
                 }
             } catch (err) {
                 console.error(err);
                 progressOutsideEntry = 0;
-                maxProgressAllowed = 100;
+                maxProgressAllowed   = 100;
             }
         });
 
         // ── Edit Progress Modal: tutup — reset ───────────
         editProgressModal.addEventListener("hidden.bs.modal", () => {
             progressWaitingEvidence = false;
-            progressOutsideEntry = 0;
-            maxProgressAllowed = 100;
-            progressSlider.max = 100;
-            progressInput.max = 100;
+            progressOutsideEntry    = 0;
+            maxProgressAllowed      = 100;
+            progressSlider.max      = 100;
+            progressInput.max       = 100;
             editEvidenceGroup?.classList.add("d-none");
             if (editEvidenceLink) editEvidenceLink.value = "";
-            const saveBtn = formEditProgress?.querySelector(
-                "button[type='submit']",
-            );
+            const saveBtn = formEditProgress?.querySelector("button[type='submit']");
             if (saveBtn)
-                saveBtn.innerHTML =
-                    '<i class="bi bi-check2-circle me-2"></i>Save Progress';
+                saveBtn.innerHTML = '<i class="bi bi-check2-circle me-2"></i>Save Progress';
         });
     }
 
@@ -378,12 +391,10 @@ document.addEventListener("DOMContentLoaded", () => {
         formEditProgress.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const lbkId = document.getElementById("lbk_id_progress").value;
+            const lbkId   = document.getElementById("lbk_id_progress").value;
             const progress = parseInt(progressInput.value) || 0;
-            const saveBtn = formEditProgress.querySelector(
-                "button[type='submit']",
-            );
-            const total = progressOutsideEntry + progress;
+            const saveBtn  = formEditProgress.querySelector("button[type='submit']");
+            const total    = progressOutsideEntry + progress;
 
             // STEP 1: Jika total complete & belum tampil evidence → tampilkan dulu
             if (total >= 100 && !progressWaitingEvidence) {
@@ -392,13 +403,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     saveBtn.innerHTML =
                         '<i class="bi bi-check2-circle me-2"></i>Save with Evidence';
                 progressWaitingEvidence = true;
-                return; // stop, tunggu klik berikutnya
+                return;
             }
 
             // STEP 2: Save
             axios
                 .put(`/api/logbook/${lbkId}`, {
-                    lbk_progress: progress,
+                    lbk_progress:  progress,
                     evidence_link: editEvidenceLink?.value || "",
                 })
                 .then(() => {

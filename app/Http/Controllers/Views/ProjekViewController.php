@@ -50,7 +50,8 @@ class ProjekViewController extends Controller
     public function jobs($id)
     {
         $projek = DB::select('CALL sp_read_projek(?, NULL, NULL)', [$id]);
-        if (empty($projek)) abort(404);
+        if (empty($projek))
+            abort(404);
         $projek = $projek[0];
 
         $moduls = DB::select('CALL sp_read_modul(NULL, ?, NULL)', [$id]);
@@ -60,6 +61,12 @@ class ProjekViewController extends Controller
 
             foreach ($modul->kegiatans as $kegiatan) {
                 $kegiatan->tugas = DB::select('CALL sp_read_tugas(NULL, ?, NULL, NULL, NULL)', [$kegiatan->kgt_id]);
+
+                foreach ($kegiatan->tugas as $tugas) {
+                    $tugas->logbook_progress = DB::table('logbook')
+                        ->where('tgs_id', $tugas->tgs_id)
+                        ->sum('lbk_progress');
+                }
             }
         }
 
@@ -74,7 +81,8 @@ class ProjekViewController extends Controller
     public function list($id)
     {
         $projek = DB::select('CALL sp_read_projek(?, NULL, NULL)', [$id]);
-        if (empty($projek)) abort(404);
+        if (empty($projek))
+            abort(404);
         $projek = $projek[0];
 
         $moduls = DB::select('CALL sp_read_modul(NULL, ?, NULL)', [$id]);
@@ -159,11 +167,11 @@ class ProjekViewController extends Controller
             ->get();
 
         return view('ProjekPage.Logbook', [
-            'projek'     => $projek,
-            'logbooks'   => $logbooks, // Data awal tabel
+            'projek' => $projek,
+            'logbooks' => $logbooks, // Data awal tabel
             'activeMenu' => 'logbook',
-            'projectId'  => $id,
-            'tugas'      => $daftarTugas // Data untuk dropdown modal
+            'projectId' => $id,
+            'tugas' => $daftarTugas // Data untuk dropdown modal
         ]);
     }
 

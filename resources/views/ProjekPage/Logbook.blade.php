@@ -141,7 +141,7 @@
                                             data-start="{{ $log->tgs_tanggal_mulai }}"
                                             data-end="{{ $log->tgs_tanggal_selesai }}"
                                             data-evidence-link="{{ $log->lbk_evidence_link ?? '' }}"
-                                            data-is-today="{{ \Carbon\Carbon::parse($log->lbk_tanggal)->isToday() ? '1' : '0' }}"
+                                            data-is-today="{{ \Carbon\Carbon::parse($log->lbk_tanggal)->setTimezone(config('app.timezone'))->isToday() ? '1' : '0' }}"
                                             title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </button>
@@ -202,7 +202,7 @@
                         @endforeach
                     </select>
                     <small class="text-muted d-block mt-1">
-                        <i class="bi bi-info-circle me-1"></i>Tasks already logged will be disabled and marked as [ALREADY LOGGED]
+                        <i class="bi bi-info-circle me-1"></i>Hanya boleh 1 entry per task per hari. Jika task sudah di-log hari ini, edit entry tersebut; untuk task sama dapat ditambah lagi besok.
                     </small>
                 </div>
 
