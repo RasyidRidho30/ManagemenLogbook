@@ -92,6 +92,7 @@
                             <th>Code</th>
                             <th>PIC</th>
                             <th>Description</th>
+                            <th>Comment</th>
                             <th width="50">Action</th>
                         </tr>
                     </thead>
@@ -122,6 +123,9 @@
                                     <small class="text-muted" title="{{ $log->lbk_deskripsi }}">
                                         {{ Str::limit($log->lbk_deskripsi, 50) }}
                                     </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ $log->lbk_komentar }}</span>
                                 </td>
                                 <td>
                                     {{-- Tombol View Detail --}}
@@ -210,6 +214,35 @@
                     <label class="form-label">Description</label>
                     <textarea name="lbk_deskripsi" id="lbk_deskripsi" class="form-control"
                               rows="3" placeholder="What did you work on?" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tipe Perhitungan Progress</label>
+                    <div class="d-flex gap-4 mt-1">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipe_progress" id="tipe_kualitatif" value="kualitatif" checked>
+                            <label class="form-check-label" for="tipe_kualitatif">
+                                Kualitatif
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipe_progress" id="tipe_kuantitatif" value="kuantitatif">
+                            <label class="form-check-label" for="tipe_kuantitatif">
+                                Kuantitatif
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="kuantitatif_inputs" class="row mb-3 d-none">
+                    <div class="col-6">
+                        <label class="form-label">Angka Capaian</label>
+                        <input type="number" id="kuantitatif_capaian" class="form-control" min="0" placeholder="Contoh: 5">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Target</label>
+                        <input type="number" id="kuantitatif_target" class="form-control" min="1" placeholder="Contoh: 10">
+                    </div>
                 </div>
 
                 <div class="mb-3">

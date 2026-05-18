@@ -106,6 +106,54 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
+    // ── Logic Kualitatif vs Kuantitatif ──────────────────
+    const tipeKualitatif = document.getElementById("tipe_kualitatif");
+    const tipeKuantitatif = document.getElementById("tipe_kuantitatif");
+    const kuantitatifInputs = document.getElementById("kuantitatif_inputs");
+    const capaianInput = document.getElementById("kuantitatif_capaian");
+    const targetInput = document.getElementById("kuantitatif_target");
+    const progressInputEl = document.getElementById("lbk_progress");
+    const komentarInputEl = document.getElementById("lbk_komentar");
+
+    const calculateKuantitatif = () => {
+        const capaian = parseFloat(capaianInput.value) || 0;
+        const target = parseFloat(targetInput.value) || 0;
+        if (target > 0) {
+            let percentage = (capaian / target) * 100;
+            if (percentage > 100) percentage = 100;
+            percentage = Math.round(percentage);
+            
+            progressInputEl.value = percentage;
+            checkShowEvidence(document.getElementById("tgs_id").value, percentage);
+            komentarInputEl.value = `${capaian} / ${target}`;
+        } else {
+            progressInputEl.value = 0;
+            checkShowEvidence(document.getElementById("tgs_id").value, 0);
+            komentarInputEl.value = "";
+        }
+    };
+
+    if (tipeKualitatif && tipeKuantitatif) {
+        tipeKualitatif.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                kuantitatifInputs.classList.add("d-none");
+                progressInputEl.readOnly = false;
+            }
+        });
+
+        tipeKuantitatif.addEventListener("change", (e) => {
+            if (e.target.checked) {
+                kuantitatifInputs.classList.remove("d-none");
+                progressInputEl.readOnly = true;
+                calculateKuantitatif();
+            }
+        });
+
+        capaianInput?.addEventListener("input", calculateKuantitatif);
+        targetInput?.addEventListener("input", calculateKuantitatif);
+    }
+
+
     // ── Add Modal: buka — fetch fresh data & update dropdown ──
     if (modalElement) {
         modalElement.addEventListener("show.bs.modal", async () => {

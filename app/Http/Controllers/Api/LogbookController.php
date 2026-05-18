@@ -109,11 +109,11 @@ class LogbookController extends Controller
             }
 
             // Rule 3: Pastikan total setelah ditambah tidak melebihi 100
-            if (($totalProgress + $progress) > 100) {
+            /*if (($totalProgress + $progress) > 100) {
                 return response()->json([
                     'message' => "Progress melebihi batas. Sisa progress yang bisa diinput: " . (100 - $totalProgress) . "%"
                 ], 422);
-            }
+            }*/
 
             // Rule 1: Cek apakah sudah ada entry untuk task + tanggal yang sama
             $existingSameDay = DB::table('logbook')
@@ -216,11 +216,11 @@ class LogbookController extends Controller
                     ->where('lbk_id', '!=', $id)
                     ->sum('lbk_progress');
 
-                if (($totalOther + $request->lbk_progress) > 100) {
+                /*if (($totalOther + $request->lbk_progress) > 100) {
                     return response()->json([
                         'message' => "Total progress melebihi 100%. Maksimal: " . (100 - $totalOther) . "%"
                     ], 422);
-                }
+                }*/
             }
 
             // ✅ Ambil value baru / fallback lama
